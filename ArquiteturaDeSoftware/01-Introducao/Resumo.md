@@ -21,4 +21,3 @@ A arquitetura permeia todas as fases. Na concepção, identifica-se o que é pri
 ## Princípios Fundamentais
 
 Arquitetura trata de decisões difíceis e duradouras feitas cedo. Escalabilidade não se adiciona depois - deve estar no DNA desde o início. Desempenho é consequência da estrutura geral, não de otimizações locais isoladas. Segurança, disponibilidade e testabilidade nascem da arquitetura, não de features adicionadas posteriormente.
-
