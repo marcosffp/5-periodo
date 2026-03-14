@@ -1,4 +1,4 @@
-### Análise de Algoritmos Recursivos com Dois Parâmetros
+# Análise de Algoritmos Recursivos com Dois Parâmetros
 
 ---
 
