@@ -67,47 +67,346 @@ Cada par de termos soma sempre (n+1), e há exatamente n pares, então 2S = n(n+
 ### Fórmula 2 — Soma de potências de 2
 
 ```
-Σ(i=0 até k) 2^i  =  2^(k+1) - 1
+Σ(i=0 até k) 2^i = 2^(k+1) - 1
 ```
-
-**O que ela soma?** As potências de 2: 1, 2, 4, 8, 16, ..., 2^k.
-
-**De onde vem?** É um caso especial da soma de progressão geométrica. Aqui vai uma forma intuitiva de entender:
-
-Pense em binário. O número com k+1 dígitos "1" (ou seja, 111...1 em binário) vale exatamente 2^(k+1) - 1. E cada dígito "1" corresponde a uma potência de 2:
-
-```
-2⁰ + 2¹ + 2² + ... + 2^k  =  111...1 (k+1 dígitos)  =  2^(k+1) - 1
-```
-
-**Exemplo concreto:** k=3 → 1+2+4+8 = 15 = 2⁴-1 = 16-1 = 15. ✓
-
-**Quando aparece em algoritmos?** Em algoritmos que trabalham com **divisão ao meio repetida** — como árvores binárias, busca binária, algoritmos de divisão e conquista. O número de nós em uma árvore binária completa de altura k segue exatamente essa soma.
-
-**Classificação Big-O:** 2^(k+1) - 1 → **O(2^k)** (crescimento exponencial)
 
 ---
 
-### Fórmula 3 — Soma de potências de 1/2 (série geométrica convergente)
+**O que essa soma representa**
+
+A expressão
 
 ```
-Σ(i=0 até k) 1/2^i  =  2 - 1/2^k
+Σ(i=0 até k) 2^i
 ```
 
-**O que ela soma?** As frações: 1, 1/2, 1/4, 1/8, ..., 1/2^k.
+significa somar todas as potências de 2 começando em (2^0) até (2^k).
 
-**Intuição:** Esta é uma série que **converge** — à medida que k cresce, os termos ficam cada vez menores e a soma se aproxima, mas nunca ultrapassa, o valor 2. Quando k → ∞, 1/2^k → 0, e a soma se aproxima de 2.
+Ou seja:
 
-Você pode verificar parcialmente:
 ```
-k=0: 1 = 2 - 1/1 = 1 ✓
-k=1: 1 + 1/2 = 1.5 = 2 - 1/2 = 1.5 ✓
-k=2: 1 + 1/2 + 1/4 = 1.75 = 2 - 1/4 = 1.75 ✓
+2^0 + 2^1 + 2^2 + 2^3 + ... + 2^k
 ```
 
-**Quando aparece em algoritmos?** Em análises de algoritmos recursivos que reduzem o trabalho pela metade a cada nível, como o Merge Sort. O custo total de todos os níveis de recursão muitas vezes resulta nesse tipo de soma.
+Sabendo que:
 
-**Classificação Big-O:** Como a soma é limitada por 2 (constante), → **O(1)** em relação a k (a soma não cresce indefinidamente).
+```
+2^0 = 1
+2^1 = 2
+2^2 = 4
+2^3 = 8
+```
+
+a soma fica:
+
+```
+1 + 2 + 4 + 8 + ... + 2^k
+```
+
+Cada termo é **o dobro do anterior**.
+
+---
+
+**Ideia da demonstração**
+
+Queremos descobrir o valor dessa soma **sem somar termo por termo**.
+
+Para isso damos um nome para a soma:
+
+```
+S = 1 + 2 + 4 + 8 + ... + 2^k
+```
+
+Nosso objetivo é descobrir **quanto vale S**.
+
+---
+
+**Criando uma segunda equação**
+
+Multiplicamos toda a soma por 2:
+
+```
+2S = 2 + 4 + 8 + ... + 2^(k+1)
+```
+
+Agora temos duas equações:
+
+```
+S  = 1 + 2 + 4 + 8 + ... + 2^k
+2S =     2 + 4 + 8 + ... + 2^k + 2^(k+1)
+```
+
+Observe que **quase todos os termos são iguais**.
+
+---
+
+**Por que fazemos a subtração**
+
+Queremos eliminar os termos repetidos do meio.
+
+A operação que cancela termos iguais é **subtração**.
+
+Então fazemos:
+
+```
+2S − S
+```
+
+No lado esquerdo:
+
+```
+2S − S = S
+```
+
+Ou seja, conseguimos **isolar S**, que é o que queremos descobrir.
+
+---
+
+**Subtraindo as somas**
+
+Agora subtraímos as duas expressões:
+
+```
+2 + 4 + 8 + ... + 2^(k+1)
+-
+1 + 2 + 4 + ... + 2^k
+```
+
+Os termos iguais cancelam:
+
+```
+2 − 2
+4 − 4
+8 − 8
+...
+2^k − 2^k
+```
+
+Tudo desaparece.
+
+Sobra apenas:
+
+```
+2^(k+1) − 1
+```
+
+---
+
+**Resultado final**
+
+Como
+
+```
+2S − S = S
+```
+
+então:
+
+```
+S = 2^(k+1) − 1
+```
+
+Logo:
+
+```
+Σ(i=0 até k) 2^i = 2^(k+1) − 1
+```
+
+---
+
+**Exemplo concreto**
+
+Para (k = 3):
+
+```
+2^0 + 2^1 + 2^2 + 2^3
+```
+
+Calculando:
+
+```
+1 + 2 + 4 + 8 = 15
+```
+
+Usando a fórmula:
+
+```
+2^(k+1) − 1
+2^4 − 1
+16 − 1 = 15
+```
+
+Resultado igual.
+
+**Classificação em análise de algoritmos**
+
+A expressão:
+
+```
+2^(k+1) − 1
+```
+
+é dominada pelo termo exponencial.
+
+Portanto:
+
+```
+O(2^k)
+```
+
+Classificação: **crescimento exponencial**.
+
+---
+
+### Fórmula 3 — Soma de potências de $\frac{1}{2}$
+
+$$\sum_{i=0}^{k} \left(\frac{1}{2}\right)^i = 2 - \frac{1}{2^k}$$
+
+---
+
+#### O que essa soma representa
+
+A expressão $\sum_{i=0}^{k} \left(\frac{1}{2}\right)^i$ significa somar:
+
+$$1 + \frac{1}{2} + \frac{1}{4} + \frac{1}{8} + \dots + \frac{1}{2^k}$$
+
+Cada termo é metade do anterior. Exemplo dos primeiros termos:
+
+$$1,\; \frac{1}{2},\; \frac{1}{4},\; \frac{1}{8},\; \frac{1}{16},\; \dots$$
+
+---
+
+#### Damos um nome para a soma
+
+Chamamos a soma de $S$:
+
+$$S = 1 + \frac{1}{2} + \frac{1}{4} + \frac{1}{8} + \dots + \frac{1}{2^k}$$
+
+Nosso objetivo é descobrir quanto vale $S$.
+
+---
+
+#### Criamos uma segunda equação
+
+Multiplicamos toda a soma por $\frac{1}{2}$. Isso desloca todos os termos:
+
+$$\frac{S}{2} = \frac{1}{2} + \frac{1}{4} + \frac{1}{8} + \dots + \frac{1}{2^{k+1}}$$
+
+Agora temos duas equações:
+
+$$S = 1 + \frac{1}{2} + \frac{1}{4} + \frac{1}{8} + \dots + \frac{1}{2^k}$$
+
+$$\frac{S}{2} = \frac{1}{2} + \frac{1}{4} + \frac{1}{8} + \dots + \frac{1}{2^k} + \frac{1}{2^{k+1}}$$
+
+Observe que quase todos os termos são iguais.
+
+---
+
+#### Por que fazemos a subtração
+
+Queremos cancelar os termos iguais do meio. Então fazemos $S - \frac{S}{2}$.
+
+No lado esquerdo:
+
+$$S - \frac{S}{2} = \frac{S}{2}$$
+
+---
+
+#### Subtraindo as somas
+
+Subtraímos as duas expressões:
+
+$$\left(1 + \frac{1}{2} + \frac{1}{4} + \dots + \frac{1}{2^k}\right) - \left(\frac{1}{2} + \frac{1}{4} + \dots + \frac{1}{2^{k+1}}\right)$$
+
+Cancelamentos:
+
+- $\frac{1}{2} - \frac{1}{2}$
+- $\frac{1}{4} - \frac{1}{4}$
+- $\frac{1}{8} - \frac{1}{8}$
+- $\vdots$
+- $\frac{1}{2^k} - \frac{1}{2^k}$
+
+Tudo cancela. Sobra apenas:
+
+$$1 - \frac{1}{2^{k+1}}$$
+
+Então:
+
+$$\frac{S}{2} = 1 - \frac{1}{2^{k+1}}$$
+
+Multiplicando por 2:
+
+$$S = 2 - \frac{1}{2^k}$$
+
+---
+
+#### Resultado final
+
+$$\sum_{i=0}^{k} \left(\frac{1}{2}\right)^i = 2 - \frac{1}{2^k}$$
+
+---
+
+#### Verificando com valores pequenos
+
+**$k = 0$**
+$$1 \quad\Rightarrow\quad \text{Fórmula: } 2 - 1 = 1 \checkmark$$
+
+**$k = 1$**
+$$1 + \frac{1}{2} = 1{,}5 \quad\Rightarrow\quad \text{Fórmula: } 2 - \frac{1}{2} = 1{,}5 \checkmark$$
+
+**$k = 2$**
+$$1 + \frac{1}{2} + \frac{1}{4} = 1{,}75 \quad\Rightarrow\quad \text{Fórmula: } 2 - \frac{1}{4} = 1{,}75 \checkmark$$
+
+---
+
+#### Intuição importante
+
+Cada termo adiciona metade do anterior:
+
+$$1 + 0{,}5 + 0{,}25 + 0{,}125 + \dots$$
+
+A soma vai crescendo e se aproxima de 2, mas nunca passa de 2:
+
+```
+1
+1.5
+1.75
+1.875
+1.9375
+...
+```
+
+Quando $k \to \infty$:
+
+$$\frac{1}{2^k} \to 0 \quad\Rightarrow\quad S \to 2$$
+
+---
+
+#### Onde aparece em algoritmos
+
+Essa soma aparece quando o trabalho diminui pela metade a cada nível. Exemplo típico: Merge Sort. O custo por nível da recursão pode ser:
+
+```
+n + n/2 + n/4 + n/8 + ...
+```
+
+Fatorando $n$:
+
+```
+n · (1 + 1/2 + 1/4 + ...)
+```
+
+Essa soma é limitada por 2, então o custo total é $\leq 2n$.
+
+---
+
+#### Classificação em análise de algoritmos
+
+A soma $1 + \frac{1}{2} + \frac{1}{4} + \dots$ é limitada por uma constante (2). Portanto, em relação a $k$:
+
+$$O(1)$$
+
+Ela não cresce indefinidamente.
 
 ---
 
