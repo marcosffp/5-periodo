@@ -1,8 +1,8 @@
-## Equações de Recorrência com Divisão — Método Formal Passo a Passo
+# Equações de Recorrência com Divisão — Método Formal Passo a Passo
 
 ---
 
-#### 1. Ideia Principal
+## 1. Ideia Principal
 
 Nos resumos anteriores, resolvíamos recorrências expandindo manualmente, enxergando um padrão e escrevendo a Fórmula Geral (F.G) com $i$ ou $k$. Esse método funciona bem para casos simples como divisão por 2 com padrão óbvio. Mas ele começa a falhar quando a recorrência fica mais complexa — por exemplo, quando o problema se divide por 3 em vez de 2, ou quando o somatório que surge não é imediato de fechar.
 
@@ -10,7 +10,7 @@ O método formal apresentado aqui resolve exatamente esse problema. Ele é uma *
 
 ---
 
-#### 2. Quando usar este método vs. o anterior?
+## 2. Quando usar este método vs. o anterior?
 
 Esta é a questão mais importante antes de começar.
 
@@ -22,7 +22,7 @@ Na prática: **se dividir por 2 e o padrão for claro, use o método anterior. S
 
 ---
 
-#### 3. Conceito Necessário: Série Geométrica
+## 3. Conceito Necessário: Série Geométrica
 
 A ferramenta matemática nova que este método usa no passo final é a série geométrica:
 
@@ -32,7 +32,7 @@ Isso nos permite fechar o somatório que surge na expansão. Sem essa fórmula, 
 
 ---
 
-#### 4. Os Cinco Passos do Método Formal
+## 4. Os Cinco Passos do Método Formal
 
 | Passo | O que fazer |
 |---|---|
@@ -44,7 +44,7 @@ Isso nos permite fechar o somatório que surge na expansão. Sem essa fórmula, 
 
 ---
 
-#### 5. Exemplo Principal — divisão por 3
+## 5. Exemplo Principal — divisão por 3
 
 ```
 void pesquisa(n) {
@@ -59,7 +59,7 @@ void pesquisa(n) {
 
 ---
 
-##### Montando a equação de recorrência
+### Montando a equação de recorrência
 
 **Base:** quando $n \leq 1$, inspeciona 1 elemento:
 
@@ -75,7 +75,7 @@ $$\begin{cases} T(1) = 1 \\ T(n) = T(n/3) + n \end{cases}$$
 
 ---
 
-##### Passo A — Expandir a recorrência
+## Passo A — Expandir a recorrência
 
 Partimos de $T(n)$ e substituímos $T(n/3)$ pela própria regra, depois $T(n/9)$, e assim por diante:
 
@@ -90,7 +90,7 @@ O argumento de $T$ vai encolhendo: $n \to n/3 \to n/9 \to n/27\dots$ O termo adi
 
 ---
 
-##### Passo B — Identificar o padrão
+## Passo B — Identificar o padrão
 
 Cada linha tem a forma:
 
@@ -100,7 +100,7 @@ Após $i$ substituições, o argumento é $n/3^i$ e o termo adicionado é $n/3^i
 
 ---
 
-##### Passo C — Determinar o limite
+## Passo C — Determinar o limite
 
 Paramos quando o argumento de $T$ iguala o caso base $T(1)$:
 
@@ -108,7 +108,7 @@ $$\frac{n}{3^i} = 1 \implies n = 3^i \implies i = \log_3 n$$
 
 ---
 
-##### Passo D — Substituir $n = 3^i$
+## Passo D — Substituir $n = 3^i$
 
 Este é o passo central. Em vez de trabalhar com frações como $n/3^i$, substituímos $n = 3^i$ diretamente em todas as linhas. Isso transforma cada fração numa potência inteira de 3, tornando a álgebra limpa:
 
@@ -134,7 +134,7 @@ $$T(3^i) = 3^i + 3^{i-1} + \dots + 3^1 + 3^0 = \sum_{j=0}^{i} 3^j$$
 
 ---
 
-##### Passo E — Resolver o somatório
+## Passo E — Resolver o somatório
 
 Temos uma soma de progressão geométrica com razão $a = 3$. Aplicamos a fórmula:
 
@@ -150,11 +150,11 @@ $$\boxed{T(n) = \frac{3n-1}{2} \implies O(n)}$$
 
 ---
 
-#### 6. Exercícios Resolvidos
+## 6. Exercícios Resolvidos
 
 ---
 
-##### Exercício a)
+## Exercício a)
 
 $$\begin{cases} T(1) = 1 \\ T(n) = T(n/2) + 1 \end{cases}$$
 
@@ -193,7 +193,7 @@ $$T(n) = \log_2 n + 1 \implies O(\log n)$$
 
 ---
 
-##### Exercício b)
+## Exercício b)
 
 $$\begin{cases} T(1) = 0 \\ T(n) = 2T(n/2) + n \end{cases}$$
 
@@ -228,7 +228,7 @@ $$2^{\log_2 n} = n \implies T(n) = \log_2 n \cdot n \implies O(n \log n)$$
 
 ---
 
-#### 7. Dicas para Resolver sem Precisar Decorar
+## 7. Dicas para Resolver sem Precisar Decorar
 
 **Dica 1 — Os cinco passos são uma receita universal.** A, B, C, D, E. Não importa se divide por 2, por 3 ou por 4 — o processo é sempre o mesmo.
 
