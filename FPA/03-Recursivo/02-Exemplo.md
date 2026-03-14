@@ -2,13 +2,13 @@
 
 ---
 
-#### 1. Ideia Principal
+## 1. Ideia Principal
 
 Este conteúdo apresenta um novo desafio: **o que acontece quando um algoritmo recursivo tem dois parâmetros que controlam seu comportamento?** A recursividade depende de `i`, mas o laço interno depende de `n` (o tamanho do vetor). São duas dimensões diferentes e precisamos saber como tratá-las na equação de recorrência. No final, há um exercício com **duas chamadas recursivas simultâneas**, o que muda completamente o raciocínio.
 
 ---
 
-#### 2. Conceitos Importantes
+## 2. Conceitos Importantes
 
 **Dois parâmetros, dois papéis distintos:**
 
@@ -21,7 +21,7 @@ Quando montamos a equação de recorrência, a variável livre é `i`, e `n` apa
 
 ---
 
-#### 3. Método Geral
+## 3. Método Geral
 
 1. Identificar base e caso recursivo.
 2. Definir qual parâmetro controla a recursão e qual é constante.
@@ -34,11 +34,11 @@ Quando montamos a equação de recorrência, a variável livre é `i`, e `n` apa
 
 ---
 
-#### 4. Explicação Detalhada dos Exemplos
+## 4. Explicação Detalhada dos Exemplos
 
 ---
 
-##### Exemplo Principal — `rec2`
+### Exemplo Principal — `rec2`
 
 ```
 int rec2(int[] vet, int i) {
@@ -55,14 +55,14 @@ int rec2(int[] vet, int i) {
 
 ---
 
-###### Passo 1 — Identificar base e recursividade
+## Passo 1 — Identificar base e recursividade
 
 - **Base:** quando `i == 0`, apenas retorna `vet[0]`. Nenhuma operação relevante.
 - **Recursivo:** quando `i > 0`, executa um laço `for` completo sobre o vetor, depois chama `rec2(vet, i-1)`.
 
 ---
 
-###### Passo 2 — Identificar quem é $n$ e quem é $i$
+## Passo 2 — Identificar quem é $n$ e quem é $i$
 
 O código tem dois parâmetros: `vet` e `i`. A recursão diminui `i` de 1 em 1. O vetor não muda de tamanho — `vet.length` é constante. Chamamos esse tamanho de $n$.
 
@@ -70,7 +70,7 @@ Isso importa porque quando montarmos a equação, a parte constante de cada cham
 
 ---
 
-###### Passo 3 — Montar a equação de recorrência
+## Passo 3 — Montar a equação de recorrência
 
 **Na base** ($i = 0$): nenhuma operação, apenas retorna:
 
@@ -88,7 +88,7 @@ A diferença crucial em relação ao exemplo anterior: onde antes cada chamada c
 
 ---
 
-###### Passo 4 — Expandir por substituição iterativa
+## Passo 4 — Expandir por substituição iterativa
 
 **Começamos com:**
 
@@ -115,13 +115,13 @@ A lógica é a mesma dos exemplos anteriores: o argumento de $S$ perde $k$ e a c
 
 ---
 
-###### Passo 5 — Fórmula Geral (F.G)
+## Passo 5 — Fórmula Geral (F.G)
 
 $$\text{F.G} = S(i - k) + kn$$
 
 ---
 
-###### Passo 6 — Aplicar a condição da base
+## Passo 6 — Aplicar a condição da base
 
 Queremos parar quando o argumento de $S$ for $0$:
 
@@ -129,7 +129,7 @@ $$i - k = 0 \implies k = i$$
 
 ---
 
-###### Passo 7 — Substituir $k = i$ na F.G
+## Passo 7 — Substituir $k = i$ na F.G
 
 $$S(i) = S(i - i) + i \cdot n = S(0) + in = 1 + in$$
 
@@ -141,7 +141,7 @@ quando $i$ e $n$ são da mesma ordem.
 
 ---
 
-##### Exercício 1 — `rec3` (duas chamadas recursivas)
+### Exercício 1 — `rec3` (duas chamadas recursivas)
 
 ```
 int rec3(int[] vet, int a, int b) {
@@ -158,13 +158,13 @@ int rec3(int[] vet, int a, int b) {
 
 ---
 
-###### Passo 1 — Entender o que o código faz
+## Passo 1 — Entender o que o código faz
 
 A função recebe um vetor e dois índices `a` e `b` que delimitam um intervalo. Ela para quando `a == b` — quando o intervalo tem apenas um elemento. Caso contrário, encontra o meio do intervalo e chama a si mesma **duas vezes**: uma para a metade esquerda e outra para a metade direita.
 
 ---
 
-###### Passo 2 — Definir $n$
+## Passo 2 — Definir $n$
 
 Aqui não existe um parâmetro chamado $n$ no código. Precisamos identificar **o que está encolhendo** a cada chamada recursiva.
 
@@ -187,7 +187,7 @@ Cada subproblema tem exatamente metade dos itens do intervalo original. Portanto
 
 ---
 
-###### Passo 3 — Montar a equação de recorrência
+## Passo 3 — Montar a equação de recorrência
 
 **Na base** ($a = b$, ou seja, $n = 0$): apenas retorna `vet[a]`, nenhuma operação relevante:
 
@@ -208,7 +208,7 @@ $$\begin{cases} S(0) = 1 \\ S(n) = 2 \cdot S(n/2) + 2 \end{cases}$$
 
 ---
 
-###### Passo 4 — Expandir por substituição iterativa
+## Passo 4 — Expandir por substituição iterativa
 
 **Começamos com:**
 
@@ -241,13 +241,13 @@ $$2 + 2\cdot2 + 4\cdot2 + \dots + 2^{k-1}\cdot2 = 2(1 + 2 + 4 + \dots + 2^{k-1})
 
 ---
 
-###### Passo 5 — Fórmula Geral (F.G)
+## Passo 5 — Fórmula Geral (F.G)
 
 $$\text{F.G} = 2^k \cdot S(n/2^k) + (2^{k+1} - 2)$$
 
 ---
 
-###### Passo 6 — Aplicar a condição da base
+## Passo 6 — Aplicar a condição da base
 
 Dividindo $n$ por $2$ repetidamente nunca chegamos a zero — chegamos a $1$, o menor intervalo indivisível. Paramos quando $n/2^k = 1$:
 
@@ -255,7 +255,7 @@ $$\frac{n}{2^k} = 1 \implies 2^k = n \implies k = \log_2 n$$
 
 ---
 
-###### Passo 7 — Substituir $k = \log_2 n$ na F.G
+## Passo 7 — Substituir $k = \log_2 n$ na F.G
 
 **Primeiro termo:** $2^k \cdot S(n/2^k)$
 
@@ -275,7 +275,7 @@ $$\boxed{S(n) = 3n - 2 \implies O(n)}$$
 
 ---
 
-#### 5. Padrões de Recorrência mais Comuns
+## 5. Padrões de Recorrência mais Comuns
 
 | Recorrência | O que indica | Resultado |
 |---|---|---|
@@ -287,7 +287,7 @@ $$\boxed{S(n) = 3n - 2 \implies O(n)}$$
 
 ---
 
-#### 6. Dicas para Resolver sem Precisar Decorar
+## 6. Dicas para Resolver sem Precisar Decorar
 
 **Dica 1 — Separe quem é a variável da recursão e quem é constante.** No `rec2`, `i` diminui e `n` é fixo. Na equação, `n` entra como constante que se multiplica pelo número de passos.
 
