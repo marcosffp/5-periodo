@@ -1,89 +1,87 @@
-# Análise de Algoritmos Recursivos — Resumo Didático e Profundo
+### Análise de Algoritmos Recursivos
 
 ---
 
-## 1. Ideia Principal
+#### 1. Ideia Principal
 
-Quando temos um algoritmo recursivo, precisamos responder a pergunta: **quantas operações ele realiza?** Para isso, representamos o custo de execução através de uma **equação de recorrência** — uma equação matemática que descreve o comportamento do algoritmo em termos de si mesma, exatamente como o algoritmo se chama recursivamente.
+Quando temos um algoritmo recursivo, precisamos responder: **quantas operações ele realiza?** Para isso, representamos o custo de execução através de uma **equação de recorrência** — uma equação matemática que descreve o comportamento do algoritmo em termos de si mesma, exatamente como o algoritmo se chama recursivamente.
 
-O objetivo final é **resolver essa equação** e encontrar uma fórmula fechada (sem recursividade), que nos diz a complexidade do algoritmo em notação O(n).
+O objetivo final é **resolver essa equação** e encontrar uma fórmula fechada (sem recursividade), que nos diz a complexidade em notação $O(n)$.
 
 ---
 
-## 2. Conceitos Importantes
+#### 2. Conceitos Importantes
 
 **Recursividade** é quando uma função se chama a si mesma. Para que não caia em loop infinito, toda recursão precisa de dois componentes:
 
-- **Caso base:** a condição que para a recursão (o piso do problema).
+- **Caso base:** a condição que para a recursão.
 - **Caso recursivo:** a chamada que reduz o problema até atingir a base.
 
 **Equação de Recorrência** é a tradução matemática do custo do algoritmo. Ela também tem dois pedaços:
 
-- O custo da **base**: S(0) = algum valor constante.
-- O custo do **caso recursivo**: S(n) = custo local + S(problema menor).
+- O custo da **base:** $S(0) = \text{algum valor constante}$.
+- O custo do **caso recursivo:** $S(n) = \text{custo local} + S(\text{problema menor})$.
 
 ---
 
-## 3. Método Geral para Resolver
+#### 3. Método Geral para Resolver
 
-O processo tem etapas bem definidas:
-
-1. **Identificar base e recursividade** no código.
-2. **Definir n** (o parâmetro que controla o tamanho do problema).
-3. **Identificar as operações relevantes** (multiplicações, comparações, etc.).
-4. **Montar a equação de recorrência** com base e caso recursivo.
-5. **Resolver por substituição iterativa** até encontrar um padrão.
-6. **Generalizar com uma Fórmula Geral (F.G)** em termos de i.
-7. **Aplicar a condição da base** para descobrir o valor de i.
-8. **Substituir** e obter a fórmula fechada.
+1. Identificar base e recursividade no código.
+2. Definir $n$ — o parâmetro que controla o tamanho do problema.
+3. Identificar a operação relevante (multiplicação, comparação, etc.).
+4. Montar a equação de recorrência com base e caso recursivo.
+5. Resolver por **substituição iterativa** até enxergar um padrão.
+6. Generalizar com uma **Fórmula Geral (F.G)** em termos de $i$.
+7. Aplicar a **condição da base** para descobrir o valor de $i$.
+8. Substituir e obter a fórmula fechada.
 
 ---
 
-## 4. Explicação Detalhada do Exemplo (Passo a Passo)
+#### 4. Explicação Detalhada do Exemplo (Passo a Passo)
 
-### O código analisado:
+##### O código analisado
 
 ```
 int rec1(int n) {
-    if (n == 0)        // linha 2
-        return 1;      // linha 3
+    if (n == 0)
+        return 1;
     else
-        return n * rec1(n-1);  // linha 5
+        return n * rec1(n-1);
 }
 ```
 
-Este é o **fatorial** de n. Vamos analisar seu custo.
+Este é o **fatorial** de $n$. Vamos analisar seu custo contando o número de multiplicações realizadas.
 
 ---
 
-### Passo 1 — Identificar base e recursividade
+##### Passo 1 — Identificar base e recursividade
 
-Olhando o código, vemos claramente:
+Olhando o código:
 
-- **Base:** quando `n == 0`, retorna 1. O algoritmo para aqui.
-- **Recursivo:** quando `n > 0`, faz `n * rec1(n-1)`. O problema se reduz de n para n-1 a cada chamada.
-
----
-
-### Passo 2 — Definir n e a operação relevante
-
-O parâmetro `n` é a medida do tamanho do problema — ele diminui de 1 em 1 a cada chamada.
-
-A operação relevante é a **multiplicação** `n * rec1(n-1)`. Cada chamada faz exatamente 1 multiplicação.
+- **Base:** quando `n == 0`, retorna 1 imediatamente. Nenhuma multiplicação é feita.
+- **Recursivo:** quando `n > 0`, executa `n * rec1(n-1)`. O problema diminui de $n$ para $n-1$ a cada chamada.
 
 ---
 
-### Passo 3 — Montar a equação de recorrência
+##### Passo 2 — Definir $n$ e a operação relevante
 
-Chamamos de S(n) o número de operações para entrada n.
+O parâmetro $n$ é a medida do tamanho do problema — ele diminui de 1 em 1 a cada chamada recursiva.
 
-**Na base** (n = 0): o algoritmo só faz a comparação e retorna. Nenhuma multiplicação. Portanto:
+A operação relevante é a **multiplicação** `n * rec1(n-1)`. Cada chamada realiza exatamente **1 multiplicação**.
 
-> S(0) = 1
+---
 
-**No caso recursivo** (n > 0): faz 1 multiplicação, mais o custo da chamada recursiva S(n-1). Portanto:
+##### Passo 3 — Montar a equação de recorrência
 
-> S(n) = 1 + S(n-1)
+Chamamos de $S(n)$ o número de multiplicações para entrada $n$.
+
+**Na base** ($n = 0$): nenhuma multiplicação é feita, apenas retorna 1:
+
+$$S(0) = 1$$
+
+**No caso recursivo** ($n > 0$): faz 1 multiplicação, mais o custo da chamada com $n-1$:
+
+$$S(n) = 1 + S(n-1)$$
 
 Equação completa:
 
@@ -91,72 +89,82 @@ $$\begin{cases} S(0) = 1 \\ S(n) = 1 + S(n-1) \end{cases}$$
 
 ---
 
-### Passo 4 — Resolver por substituição iterativa
+##### Passo 4 — Resolver por substituição iterativa
 
-Agora vamos **expandir** a equação, substituindo S(n-1), depois S(n-2), etc. A ideia é enxergar um padrão.
+A ideia central aqui é simples: **a equação fala de si mesma**, então podemos abri-la repetidamente, substituindo $S(n-1)$ pela própria definição, depois $S(n-2)$, e assim por diante. A cada substituição enxergamos um pouco mais da estrutura.
 
-**Partindo de S(n):**
+Vamos com calma, passo a passo.
 
-> S(n) = 1 + S(n-1)
+**Começamos com:**
 
-Mas S(n-1) também segue a mesma regra: S(n-1) = 1 + S(n-2). Substituindo:
+$$S(n) = 1 + S(n-1)$$
 
-> S(n) = 1 + [1 + S(n-2)] = **S(n-2) + 2**
+$S(n-1)$ ainda é desconhecido, mas sabemos que ele segue a mesma regra. Ou seja:
 
-Agora S(n-2) = 1 + S(n-3). Substituindo:
+$$S(n-1) = 1 + S(n-2)$$
 
-> S(n) = [1 + S(n-3)] + 2 = **S(n-3) + 3**
+Substituímos isso dentro de $S(n)$:
 
-Perceba o padrão emergindo. A cada substituição, o argumento de S diminui em 1 e a constante aumenta em 1. Isso nos dá:
+$$S(n) = 1 + \big[1 + S(n-2)\big] = 2 + S(n-2)$$
 
-| Passo | Expressão |
-|-------|-----------|
-| Inicial | S(n-1) + 1 |
-| 1ª substituição | S(n-2) + 2 |
-| 2ª substituição | S(n-3) + 3 |
-| i-ésima substituição | **S(n-i) + i** |
+Agora $S(n-2)$ ainda é desconhecido. Pela mesma regra:
 
----
+$$S(n-2) = 1 + S(n-3)$$
 
-### Passo 5 — Escrever a Fórmula Geral (F.G)
+Substituímos:
 
-> **F.G = S(n - i) + i**
+$$S(n) = 2 + \big[1 + S(n-3)\big] = 3 + S(n-3)$$
 
-Esta fórmula descreve o estado da expansão após i substituições. O i é uma variável livre — ainda não tem valor fixo.
+Observe o que está acontecendo a cada passo:
 
----
+| Substituição | Expressão obtida |
+|---|---|
+| Nenhuma (início) | $S(n-1) + 1$ |
+| $1^a$ | $S(n-2) + 2$ |
+| $2^a$ | $S(n-3) + 3$ |
+| $3^a$ | $S(n-4) + 4$ |
 
-### Passo 6 — Aplicar a condição da base
-
-Queremos que a expansão pare quando chegamos à **base**, ou seja, quando o argumento de S for 0:
-
-> S(n - i) = S(0) → n - i = 0 → **i = n**
-
-Sabemos agora que a expansão para quando i = n.
+O padrão é claro: após $i$ substituições, o argumento de $S$ perdeu $i$ e a constante ganhou $i$.
 
 ---
 
-### Passo 7 — Substituir i = n na F.G
+##### Passo 5 — Escrever a Fórmula Geral (F.G)
 
-> S(n) = S(n - n) + n = S(0) + n
+Generalizamos o padrão observado para um $i$ qualquer:
 
-Como S(0) = 1:
+$$\text{F.G} = S(n - i) + i$$
 
-> **S(n) = 1 + n**
-
----
-
-### Conclusão
-
-O algoritmo `rec1` realiza **n + 1 operações**. Em notação assintótica:
-
-> **S(n) = O(n)** — complexidade linear.
-
-Faz sentido intuitivamente: para calcular o fatorial de n, o algoritmo se chama n vezes, fazendo 1 multiplicação a cada vez.
+Esta fórmula descreve onde estamos após $i$ substituições. O $i$ ainda é uma variável livre — ainda não sabemos quando parar.
 
 ---
 
-## 5. Como Aplicar o Raciocínio em Outros Exercícios
+##### Passo 6 — Aplicar a condição da base
+
+Queremos que a expansão pare exatamente quando chegarmos à **base**, isto é, quando o argumento de $S$ for $0$:
+
+$$n - i = 0 \implies i = n$$
+
+Quando $i = n$, o $S(n - i)$ vira $S(0)$, que já conhecemos: $S(0) = 1$.
+
+---
+
+##### Passo 7 — Substituir $i = n$ na F.G
+
+$$S(n) = S(n - n) + n = S(0) + n = 1 + n$$
+
+---
+
+##### Conclusão
+
+$$S(n) = n + 1 \implies O(n)$$
+
+Faz sentido intuitivamente: para calcular o fatorial de $n$, o algoritmo se chama $n$ vezes, fazendo 1 multiplicação a cada vez. A constante $+1$ vem da base.
+
+**Verificação rápida:** para $n = 3$, o algoritmo faz `3 * rec1(2)` → `2 * rec1(1)` → `1 * rec1(0)` → retorna. São exatamente 3 multiplicações. A fórmula dá $S(3) = 3 + 1 = 4$, contando a base. $\checkmark$
+
+---
+
+#### 5. Como Aplicar o Raciocínio em Outros Exercícios
 
 Suponha que você encontra este código:
 
@@ -171,42 +179,52 @@ int rec2(int n) {
 
 Seguindo o método:
 
-- Base: S(1) = 1
-- Recursivo: S(n) = 1 + S(n/2) — aqui o problema é **dividido ao meio**!
+- Base: $S(1) = 1$
+- Recursivo: $S(n) = 1 + S(n/2)$ — aqui o problema é **dividido ao meio**.
 
 Expandindo:
 
-> S(n) = 1 + S(n/2)
-> = 1 + 1 + S(n/4) = S(n/4) + 2
-> = S(n/8) + 3
-> = **S(n/2^i) + i** ← F.G
+$$S(n) = 1 + S(n/2)$$
 
-Na base: n/2^i = 1 → 2^i = n → **i = log₂(n)**
+$$= 1 + 1 + S(n/4) = 2 + S(n/4)$$
 
-Substituindo: S(n) = S(1) + log₂(n) = 1 + log₂(n)
+$$= 3 + S(n/8)$$
 
-> **S(n) = O(log n)**
+$$\text{F.G} = S(n/2^i) + i$$
 
-E é exatamente **assim que surge o log₂(n)** do mergesort, quicksort e heapsort — sempre que um algoritmo divide o problema ao meio a cada chamada, a profundidade da recursão é logarítmica.
+Na base: $n/2^i = 1 \implies 2^i = n \implies i = \log_2 n$
+
+Substituindo:
+
+$$S(n) = S(1) + \log_2 n = 1 + \log_2 n$$
+
+$$S(n) = O(\log n)$$
+
+É exatamente **assim que surge o $\log_2 n$** no Merge Sort, Quick Sort e Heap Sort — sempre que um algoritmo divide o problema ao meio a cada chamada, a profundidade da recursão é logarítmica.
 
 ---
 
-## 6. Dicas para Resolver sem Decorar
+#### 6. Dicas para Resolver sem Decorar
 
-**Dica 1 — O padrão depende de como n decresce:**
-- Se n diminui de 1 em 1 → a expansão gera S(n-i) + algo → i vai até n → resultado geralmente O(n).
-- Se n é dividido por 2 → a expansão gera S(n/2^i) + algo → i vai até log₂(n) → resultado geralmente O(log n).
-- Se ambos acontecem junto (divide e opera) → geralmente O(n log n).
+**Dica 1 — O padrão depende de como $n$ decresce:**
 
-**Dica 2 — A Fórmula Geral é sempre o padrão com i:**
-Não tente adivinhar. Expanda 3 vezes, observe o que muda, escreva com i. Se a cada passo o argumento perde 1 e a constante ganha 1, a F.G tem essa forma simétrica.
+- $n$ diminui de 1 em 1 → expansão gera $S(n-i) + i$ → $i$ vai até $n$ → resultado $O(n)$.
+- $n$ é dividido por 2 → expansão gera $S(n/2^i) + i$ → $i$ vai até $\log_2 n$ → resultado $O(\log n)$.
+- Ambos acontecem juntos → geralmente $O(n \log n)$.
 
-**Dica 3 — A condição da base te dá o valor de i:**
-Sempre iguale o argumento de S(?) ao valor da base para descobrir quando parar.
+**Dica 2 — A Fórmula Geral é sempre o padrão com $i$:**
 
-**Dica 4 — Verifique seu resultado com n pequeno:**
-Se encontrou S(n) = n + 1, teste com n = 3: a função deveria fazer 4 operações. Conte no código — se bater, está certo.
+Não tente adivinhar. Expanda 3 vezes, observe o que muda, escreva com $i$.
+
+**Dica 3 — A condição da base te dá o valor de $i$:**
+
+Sempre iguale o argumento de $S(?)$ ao valor da base para descobrir quando parar.
+
+**Dica 4 — Verifique seu resultado com $n$ pequeno:**
+
+Se encontrou $S(n) = n + 1$, teste com $n = 3$: conte as operações no código e confirme.
 
 **Dica 5 — Identifique quantas chamadas recursivas existem:**
-Uma chamada recursiva → árvore linear → O(n) ou O(log n).
-Duas chamadas recursivas → árvore binária → geralmente O(2^n) ou O(n log n).
+
+- Uma chamada recursiva → árvore linear → $O(n)$ ou $O(\log n)$.
+- Duas chamadas recursivas → árvore binária → geralmente $O(2^n)$ ou $O(n \log n)$.
