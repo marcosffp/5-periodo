@@ -165,7 +165,7 @@ Para cada elemento i, conta quantos elementos do array são maiores que ele (lin
 
 **Passo 2 — Operações relevantes:**
 - Linha 6: comparação → custo 1
-- Linha 7: incremento → custo 1 (condicional: só executa se a linha 6 for verdadeira)
+- Linha 7: incremento → custo 2 (condicional: só executa se a linha 6 for verdadeira)
 - Linha 9: comparação → custo 1
 - Linha 10: atribuição → custo 1 (condicional)
 - Linha 11: atribuição → custo 1
@@ -177,8 +177,8 @@ Para cada elemento i, conta quantos elementos do array são maiores que ele (lin
 **Camada mais interna (laço j + linhas 6-7):**
 - O laço j executa **n vezes** (de 0 a n-1)
 - Dentro dele, linha 6 sempre executa: custo 1
-- Linha 7 é condicional — mas no **pior caso**, executa também: custo 1+1 = 2 (máximo com linha 6 incluída), considerando custo 1 por iteração (só a comparação obrigatória)
-- Custo do bloco interno (laço j): n × 1 = **n**
+- Linha 7 é condicional — mas no **pior caso**, executa também: custo 1+2 = 3 (máximo com linha 6 incluída).
+- Custo do bloco interno (laço j): n × 3 = **3n**
 
 **Por que a linha 7 tem variação?**
 A comparação `array[i] < array[j]` será **falsa quando i == j** (nenhum elemento é estritamente menor que ele mesmo). Então linha 7 executa no máximo **n-1 vezes** por iteração do laço i.
@@ -186,21 +186,13 @@ A comparação `array[i] < array[j]` será **falsa quando i == j** (nenhum eleme
 **Camada seguinte (linhas 9-11, dentro do laço i):**
 - Linha 9 sempre executa: custo 1
 - Linha 10 é condicional (depende da entrada): custo 0 ou 1
-- Linha 11 sempre executa: custo 1
-- Custo do bloco pós-laço-j: 1 + (0 ou 1) + 1 = **2 ou 3** → aproximamos por **2 no mínimo**
-
-**Custo total de uma iteração do laço i:**
-```
-custo_iteração_i = n (do laço j) + 1 (linha 9) + custo_linha_10 + 1 (linha 11)
-                = n + 1 (obrigatório, mais possível atribuição)
-```
+- Custo do bloco pós-laço-j: (0 ou 1) + 1 = **2 ou 1** → aproximamos por **1 no mínimo**
 
 **Camada mais externa (laço i):**
 - O laço i executa **n vezes**
-- Custo por iteração ≈ **(n + 1)**
 
 ```
-f(n) = n × (n + 1) = n² + n
+f(n) = n × (3n + 2) = 3n² + 2n
 ```
 
 **Mas a análise mais completa do slide mostra:**
