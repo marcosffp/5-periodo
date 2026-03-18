@@ -1,0 +1,13 @@
+# GERÊNCIA DE ESCOPO E INTEGRAÇÃO DE PROJETOS — RESUMO PARA PROVA
+
+Todo projeto precisa começar por uma definição clara: o que será feito? Essa é a essência do escopo, considerado a primeira preocupação do gerente logo após estabelecer o objetivo do projeto. Sem escopo bem definido, tempo, custo e equipe não têm base sólida.
+
+O PMBOK distingue dois tipos de escopo. O escopo do projeto define as atividades e o trabalho necessário para entregar o produto, como levantamento de requisitos, análise, implementação e testes. Já o escopo do produto define o que o produto terá, ou seja, seus módulos, funções e componentes. É possível também declarar o contra-escopo, que indica explicitamente o que não fará parte do projeto, evitando ambiguidades.
+
+O gerenciamento do escopo no PMBOK é composto por seis processos. O processo 5.1 consiste em planejar como o escopo será definido, validado e controlado. O 5.2 trata de coletar os requisitos das partes interessadas. O 5.3 é definir o escopo, gerando uma descrição detalhada do projeto e do produto. O 5.4 cria a EAP (Estrutura Analítica do Projeto), conhecida em inglês como WBS. O 5.5 valida o escopo, formalizando a aceitação das entregas. O 5.6 controla o escopo, monitorando mudanças na linha de base.
+
+A EAP é o artefato mais importante da área de escopo. Ela organiza o trabalho em forma de árvore hierárquica, decompondo o projeto em partes cada vez menores. Os níveis são numerados a partir do nível 0 (o projeto como um todo) até os pacotes de trabalho, que são as tarefas elementares atribuídas a uma única pessoa. A EAP pode ser organizada por fases ou por entregas. Cada atividade recebe um código da EAP para facilitar sua identificação. Recomenda-se produzir também um dicionário da EAP, descrevendo brevemente cada elemento da estrutura.
+
+A área de Integração funciona como elo central entre todas as demais áreas do PMBOK. Seus principais artefatos são: o Termo de Abertura do Projeto (TAP), documento resumido elaborado no início, com visão macro do projeto; o Plano de Gerenciamento do Projeto, documento detalhado produzido no planejamento e atualizável ao longo do projeto; a Solicitação de Mudança, usada quando há necessidade de alterar escopo, prazo ou custo; e o Termo de Aceite, documento de encerramento que formaliza a entrega ao cliente e protege o fornecedor.
+
+Para a prova: saiba diferenciar escopo do projeto e escopo do produto; memorize os seis processos do escopo (5.1 a 5.6) e o que cada um faz; entenda que a EAP é o principal artefato do escopo e que seus elementos mais detalhados são os pacotes de trabalho; e saiba que a Integração conecta todas as áreas, tendo como artefatos-chave o TAP e o Plano de Projeto.
