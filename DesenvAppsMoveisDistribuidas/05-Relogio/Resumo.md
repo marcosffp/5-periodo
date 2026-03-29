@@ -1,6 +1,6 @@
 # RELÓGIOS LÓGICOS — RESUMO PARA PROVA
 
--- Link do mateiral: <https://cristianoneto.online/puc/damd/aula05>
+-- Link do mateiral: <https://cristianoneto.online/puc/damd/aula06>
 
 **Introdução**
 
