@@ -1,8 +1,10 @@
 # 🔍 Busca de Padrões em Strings
 
+Este é o último exemplo do material de Força Bruta e Transformações: a **busca de padrões em strings**, mais um caso onde o algoritmo segue o mesmo roteiro genérico de força bruta — **listar** todas as posições candidatas, **avaliar** cada uma e **retornar** a solução encontrada.
+
 ## O Problema
 
-Dado um texto s de tamanho n e um padrão p de tamanho m, queremos saber: **o padrão p aparece dentro de s? Se sim, em qual posição?**
+Sejam uma string **s** de tamanho **n** e um padrão **p** de tamanho **m**. Queremos saber: **o padrão p (uma substring) ocorre dentro de s? Se sim, em qual posição?**
 
 É exatamente o que acontece quando você aperta Ctrl+F num documento e digita uma palavra para encontrar. O computador precisa de um algoritmo para fazer isso.
 

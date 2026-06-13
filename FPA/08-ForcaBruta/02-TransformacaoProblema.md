@@ -1,12 +1,14 @@
 # 🔄 Transformações como Técnica de Projeto de Algoritmos
 
-A ideia central das transformações é simples: em vez de atacar o problema diretamente (como faz a força bruta), você **muda o problema** para uma forma mais fácil de resolver, resolve nessa forma, e aproveita a solução.
+Depois de ver os limites da força bruta (travessia completa, custo exponencial), a próxima estratégia de projeto de algoritmos é a **Transformação** (slide 28).
 
-Pode ser usada tanto em algoritmos recursivos quanto iterativos.
+A ideia central é simples: em vez de atacar o problema diretamente (como faz a força bruta), você **transforma a instância do problema** para uma forma que **facilite encontrar uma solução**, resolve essa instância transformada, e aproveita a solução.
+
+> **Transformação:** pode ser usada para o projeto de algoritmos **recursivos** ou **não recursivos**. Transforma-se a instância do problema visando facilitar a busca por uma solução; em seguida, a instância transformada é resolvida.
 
 ---
 
-## 🌿 As Três Variações de Transformação
+## 🌿 As Três Variações de Transformação (slide 29)
 
 ### 1. Simplificação
 
