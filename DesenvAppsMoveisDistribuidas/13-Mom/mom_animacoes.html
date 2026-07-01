@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tipos de MOM — Animações Interativas · DAMD · PUC Minas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;800&display=swap');
+
+  :root {
+    --puc-blue:   #003554;
+    --puc-red:    #86001B;
+    --puc-grey:   #5D6770;
+    --bg:         #06111c;
+    --surface:    #0d1f2d;
+    --surface2:   #122536;
+    --border:     rgba(255,255,255,0.08);
+    --text:       #e8f0f7;
+    --muted:      rgba(232,240,247,0.45);
+
+    --c-producer: #f39c12;
+    --c-broker:   #2ecc71;
+    --c-consumer: #3498db;
+    --c-msg:      #e74c3c;
+    --c-kafka:    #7fb3f5;
+    --c-topic:    #a29bfe;
+    --c-fanout:   #fd79a8;
+    --c-log:      #55efc4;
+
+    --speed: 2.8s;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid background ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,53,84,0.25) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,53,84,0.25) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    position: relative; z-index: 10;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,53,84,0.6) 0%, transparent 100%);
+    backdrop-filter: blur(12px);
+    padding: 18px 40px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header img { height: 44px; }
+  .header-info .inst { font-size: .7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); }
+  .header-info .title { font-size: .95rem; font-weight: 600; color: var(--text); }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 52px 24px 32px;
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    background: rgba(134,0,27,0.25);
+    border: 1px solid rgba(134,0,27,0.5);
+    color: #ff8fa3;
+    font-size: .75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 2px;
+    padding: 4px 14px; border-radius: 20px;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #e8f0f7 30%, #7fb3f5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    color: var(--muted); font-size: 1rem; max-width: 560px; margin: 0 auto 28px; line-height: 1.65;
+  }
+
+  /* ── Tab nav ── */
+  .tab-nav {
+    position: relative; z-index: 1;
+    display: flex; justify-content: center; gap: 10px;
+    padding: 0 24px 36px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px 22px; border-radius: 10px;
+    font-family: 'Sora', sans-serif; font-size: .9rem; font-weight: 600;
+    cursor: pointer;
+    transition: all .25s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tab-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+  .tab-btn.active {
+    background: var(--puc-blue);
+    border-color: #2e7eb8;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0,53,84,0.6);
+  }
+  .tab-btn .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+  }
+
+  /* ── Panels ── */
+  .panel { display: none; position: relative; z-index: 1; padding: 0 32px 48px; max-width: 1100px; margin: 0 auto; }
+  .panel.active { display: block; }
+
+  .panel-title {
+    font-size: 1.4rem; font-weight: 800;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-desc {
+    color: var(--muted); font-size: .92rem; line-height: 1.65;
+    margin-bottom: 28px; max-width: 720px;
+  }
+
+  /* ── Animation stage ── */
+  .stage {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    min-height: 220px;
+  }
+  .stage::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,53,84,0.3) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .controls {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .ctrl-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 18px; border-radius: 8px;
+    font-family: 'Sora', sans-serif; font-size: .85rem; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .ctrl-btn:hover { background: var(--puc-blue); border-color: #2e7eb8; }
+  .ctrl-btn.running { background: rgba(134,0,27,0.3); border-color: var(--puc-red); color: #ff8fa3; }
+  .speed-label { color: var(--muted); font-size: .8rem; margin-left: 4px; }
+
+  /* ── SVG canvas ── */
+  .anim-svg { width: 100%; display: block; }
+
+  /* ── Concept cards ── */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .concept-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: border-color .2s;
+  }
+  .concept-card:hover { border-color: rgba(255,255,255,0.2); }
+  .concept-card .label {
+    font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .concept-card h4 { font-size: .95rem; font-weight: 700; margin-bottom: 6px; }
+  .concept-card p { font-size: .85rem; color: var(--muted); line-height: 1.55; }
+
+  .pill {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: .72rem; font-weight: 700;
+    border: 1px solid currentColor; margin-right: 4px; margin-bottom: 4px;
+  }
+
+  /* ── Log viewer (Kafka) ── */
+  .log-viewer {
+    background: #080f17;
+    border: 1px solid #1a3a52;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .8rem;
+    line-height: 1.7;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+  }
+  .log-viewer::-webkit-scrollbar { width: 4px; }
+  .log-viewer::-webkit-scrollbar-thumb { background: #1a3a52; border-radius: 2px; }
+  .log-entry { color: #55efc4; }
+  .log-entry .offset { color: #a29bfe; margin-right: 10px; }
+  .log-entry .key   { color: #f39c12; margin-right: 6px; }
+  .log-entry .val   { color: #e8f0f7; }
+  .log-entry.consumed { color: #5D6770; text-decoration: line-through; }
+  .log-entry.new { animation: flashIn .5s ease; }
+  @keyframes flashIn { from { background: rgba(85,239,196,0.2); } to { background: transparent; } }
+
+  /* ── Offset tracker ── */
+  .offset-row {
+    display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .offset-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace; font-size: .82rem;
+    min-width: 160px;
+  }
+  .offset-card .oc-name { color: var(--muted); font-size: .72rem; margin-bottom: 4px; }
+  .offset-card .oc-val  { color: var(--c-kafka); font-weight: 700; font-size: 1rem; }
+
+  /* ── Citation ── */
+  .citation-bar {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 16px 32px;
+    font-size: .72rem; color: var(--muted);
+    font-style: italic;
+    max-width: 1100px; margin: 0 auto;
+  }
+
+  /* ── Animations (CSS-driven particles) ── */
+
+  /* P2P: mensagem viaja horizontalmente */
+  @keyframes msgFly {
+    0%   { left: 12%; opacity: 1; transform: translateY(-50%) scale(1); }
+    40%  { left: 46%; opacity: 1; transform: translateY(-50%) scale(1.1); }
+    60%  { left: 54%; opacity: 1; transform: translateY(-50%) scale(1); }
+    100% { left: 84%; opacity: 0; transform: translateY(-50%) scale(.7); }
+  }
+  @keyframes msgFly2 {
+    0%   { left: 12%; opacity: 0; }
+    5%   { opacity: 1; }
+    100% { left: 84%; opacity: 0; }
+  }
+
+  /* Pub/Sub fanout */
+  @keyframes fanTop    { 0%{opacity:0;left:55%;top:50%} 20%{opacity:1} 100%{opacity:0;left:85%;top:22%} }
+  @keyframes fanMid    { 0%{opacity:0;left:55%;top:50%} 20%{opacity:1} 100%{opacity:0;left:85%;top:50%} }
+  @keyframes fanBot    { 0%{opacity:0;left:55%;top:50%} 20%{opacity:1} 100%{opacity:0;left:85%;top:78%} }
+  @keyframes inBroker  { 0%{opacity:0;left:10%;top:50%} 20%{opacity:1} 45%{opacity:1;left:42%;} 50%{opacity:0} 100%{opacity:0} }
+
+  /* Kafka log append */
+  @keyframes blockIn { from{opacity:0;transform:scaleX(0);transform-origin:left} to{opacity:1;transform:scaleX(1)} }
+
+  /* Pulse on nodes */
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(46,204,113,0)} 50%{box-shadow:0 0 0 8px rgba(46,204,113,0.15)} }
+  @keyframes pulseBlue { 0%,100%{box-shadow:0 0 0 0 rgba(52,152,219,0)} 50%{box-shadow:0 0 0 8px rgba(52,152,219,0.15)} }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://www.pucminas.br/institucional/PublishingImages/Paginas/brasao/brasao-pucminas-versao-2025.png" alt="PUC Minas">
+  <div class="header-info">
+    <div class="inst">PUC Minas · ICEI · Engenharia de Software · DAMD 2026/1</div>
+    <div class="title">Message-Oriented Middleware — Tipos e Modelos</div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Aula 06 · Animações Interativas</div>
+  <h1>Como as mensagens<br>fluem entre serviços</h1>
+  <p>Visualize em tempo real o comportamento de cada modelo de MOM: filas ponto a ponto, Pub/Sub com tópicos e o log imutável do Kafka.</p>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('p2p')">
+    <span class="dot" style="background:var(--c-msg)"></span> Fila Point-to-Point
+  </button>
+  <button class="tab-btn" onclick="switchTab('pubsub')">
+    <span class="dot" style="background:var(--c-fanout)"></span> Pub/Sub (Tópicos)
+  </button>
+  <button class="tab-btn" onclick="switchTab('kafka')">
+    <span class="dot" style="background:var(--c-kafka)"></span> Kafka — Log Distribuído
+  </button>
+  <button class="tab-btn" onclick="switchTab('compare')">
+    <span class="dot" style="background:var(--c-log)"></span> Comparativo
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANEL 1: FILA P2P
+════════════════════════════════════════ -->
+<div class="panel active" id="panel-p2p">
+  <div class="panel-title">
+    <span style="color:var(--c-msg)">📬</span> Fila Point-to-Point (P2P)
+  </div>
+  <p class="panel-desc">
+    Cada mensagem é consumida por <strong>exatamente um</strong> consumidor. O broker armazena as mensagens enquanto o consumidor não está disponível. Após a leitura com ACK, a mensagem é removida da fila.
+  </p>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="p2p-btn" onclick="toggleP2P()">▶ Enviar mensagem</button>
+    <button class="ctrl-btn" id="p2p-multi-btn" onclick="sendMultiP2P()">⚡ Modo: Competing Consumers</button>
+    <span class="speed-label" id="p2p-mode-label">1 consumidor</span>
+  </div>
+
+  <div class="stage">
+    <svg class="anim-svg" id="p2p-svg" viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Producer -->
+      <rect x="20" y="70" width="120" height="60" rx="10" fill="#1a3226" stroke="#f39c12" stroke-width="1.5"/>
+      <text x="80" y="96" text-anchor="middle" fill="#f39c12" font-family="Sora" font-size="13" font-weight="700">Producer</text>
+      <text x="80" y="114" text-anchor="middle" fill="rgba(243,156,18,0.6)" font-family="Sora" font-size="10">OrderService</text>
+
+      <!-- Arrow producer → broker -->
+      <line x1="140" y1="100" x2="290" y2="100" stroke="rgba(243,156,18,0.3)" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <polygon points="290,95 300,100 290,105" fill="rgba(243,156,18,0.4)"/>
+
+      <!-- Broker / Queue -->
+      <rect x="300" y="40" width="180" height="120" rx="12" fill="#0f2416" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="390" y="68" text-anchor="middle" fill="#2ecc71" font-family="Sora" font-size="12" font-weight="700">FILA</text>
+      <text x="390" y="85" text-anchor="middle" fill="rgba(46,204,113,0.5)" font-family="JetBrains Mono" font-size="9">payment.queue</text>
+      <!-- Queue slots -->
+      <rect x="316" y="94" width="36" height="22" rx="4" fill="#1a3d26" stroke="#2ecc71" stroke-width="1" id="slot0"/>
+      <rect x="358" y="94" width="36" height="22" rx="4" fill="#1a3d26" stroke="#2ecc71" stroke-width="1" id="slot1"/>
+      <rect x="400" y="94" width="36" height="22" rx="4" fill="#1a3d26" stroke="#2ecc71" stroke-width="1" id="slot2"/>
+      <rect x="442" y="94" width="36" height="22" rx="4" fill="#1a3d26" stroke="#2ecc71" stroke-width="1" id="slot3"/>
+      <text x="390" y="140" text-anchor="middle" fill="rgba(46,204,113,0.4)" font-family="JetBrains Mono" font-size="9" id="p2p-queue-count">msgs: 0</text>
+
+      <!-- Arrow broker → consumer -->
+      <line x1="480" y1="100" x2="620" y2="100" stroke="rgba(52,152,219,0.3)" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <polygon points="620,95 630,100 620,105" fill="rgba(52,152,219,0.4)"/>
+
+      <!-- Consumer A -->
+      <rect x="630" y="70" width="120" height="60" rx="10" fill="#0e1f33" stroke="#3498db" stroke-width="1.5" id="cons-a-box"/>
+      <text x="690" y="96" text-anchor="middle" fill="#3498db" font-family="Sora" font-size="12" font-weight="700">Consumer A</text>
+      <text x="690" y="112" text-anchor="middle" fill="rgba(52,152,219,0.5)" font-family="Sora" font-size="10" id="cons-a-status">idle</text>
+
+      <!-- Consumer B (hidden in simple mode) -->
+      <rect x="760" y="40" width="120" height="52" rx="10" fill="#0e1f33" stroke="rgba(52,152,219,0.3)" stroke-width="1" id="cons-b-box" opacity="0.3"/>
+      <text x="820" y="61" text-anchor="middle" fill="rgba(52,152,219,0.4)" font-family="Sora" font-size="11" font-weight="700">Consumer B</text>
+      <text x="820" y="77" text-anchor="middle" fill="rgba(52,152,219,0.25)" font-family="Sora" font-size="9" id="cons-b-status">idle</text>
+      <rect x="760" y="108" width="120" height="52" rx="10" fill="#0e1f33" stroke="rgba(52,152,219,0.3)" stroke-width="1" id="cons-c-box" opacity="0.3"/>
+      <text x="820" y="129" text-anchor="middle" fill="rgba(52,152,219,0.4)" font-family="Sora" font-size="11" font-weight="700">Consumer C</text>
+      <text x="820" y="145" text-anchor="middle" fill="rgba(52,152,219,0.25)" font-family="Sora" font-size="9" id="cons-c-status">idle</text>
+
+      <!-- Messages (animated) -->
+      <g id="p2p-msgs"></g>
+
+      <!-- ACK label -->
+      <text x="390" y="186" text-anchor="middle" fill="rgba(46,204,113,0)" font-family="JetBrains Mono" font-size="10" id="p2p-ack-label">✓ ACK — mensagem removida</text>
+    </svg>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-msg)">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--c-msg);display:inline-block"></span>
+        Garantia
+      </div>
+      <h4>Exatamente 1×</h4>
+      <p>Com ACK, cada mensagem é processada por um único consumidor. Sem ACK → reentrega.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-broker)">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--c-broker);display:inline-block"></span>
+        Durabilidade
+      </div>
+      <h4>Persistência no broker</h4>
+      <p>O consumidor pode estar offline. O broker retém a mensagem até que seja lida com sucesso.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-consumer)">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--c-consumer);display:inline-block"></span>
+        Escala
+      </div>
+      <h4>Competing Consumers</h4>
+      <p>Múltiplos workers competem pelas mensagens. Cada tarefa vai ao primeiro disponível.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:#e67e22">
+        <span style="width:8px;height:8px;border-radius:50%;background:#e67e22;display:inline-block"></span>
+        Caso de uso
+      </div>
+      <h4>Task Queues</h4>
+      <p>Processamento de pedidos, envio de e-mails, geração de relatórios, pagamentos.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANEL 2: PUB/SUB
+════════════════════════════════════════ -->
+<div class="panel" id="panel-pubsub">
+  <div class="panel-title">
+    <span style="color:var(--c-fanout)">📡</span> Publish/Subscribe — Tópicos
+  </div>
+  <p class="panel-desc">
+    Uma mensagem publicada num tópico é entregue a <strong>todos os assinantes</strong> de forma independente. O produtor não conhece os consumidores — máximo desacoplamento de espaço.
+  </p>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="ps-btn" onclick="togglePubSub()">▶ Publicar evento</button>
+    <button class="ctrl-btn" id="ps-add-btn" onclick="addSubscriber()">+ Adicionar assinante</button>
+    <span class="speed-label" id="ps-sub-count">3 assinantes</span>
+  </div>
+
+  <div class="stage">
+    <svg class="anim-svg" id="ps-svg" viewBox="0 0 900 230" xmlns="http://www.w3.org/2000/svg">
+      <!-- Publisher -->
+      <rect x="20" y="85" width="130" height="60" rx="10" fill="#1f0a18" stroke="#fd79a8" stroke-width="1.5"/>
+      <text x="85" y="110" text-anchor="middle" fill="#fd79a8" font-family="Sora" font-size="13" font-weight="700">Publisher</text>
+      <text x="85" y="128" text-anchor="middle" fill="rgba(253,121,168,0.5)" font-family="Sora" font-size="10">OrderService</text>
+
+      <!-- Arrow to broker -->
+      <line x1="150" y1="115" x2="295" y2="115" stroke="rgba(253,121,168,0.3)" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <polygon points="295,110 305,115 295,120" fill="rgba(253,121,168,0.5)"/>
+
+      <!-- Topic / Broker -->
+      <rect x="305" y="40" width="160" height="150" rx="14" fill="#110f1f" stroke="#a29bfe" stroke-width="1.5"/>
+      <text x="385" y="72" text-anchor="middle" fill="#a29bfe" font-family="Sora" font-size="12" font-weight="700">TÓPICO</text>
+      <text x="385" y="90" text-anchor="middle" fill="rgba(162,155,254,0.5)" font-family="JetBrains Mono" font-size="9">order.created</text>
+      <circle cx="385" cy="130" r="24" fill="none" stroke="rgba(162,155,254,0.2)" stroke-width="1" stroke-dasharray="3,3"/>
+      <circle cx="385" cy="130" r="16" fill="none" stroke="rgba(162,155,254,0.3)" stroke-width="1"/>
+      <circle cx="385" cy="130" r="8"  fill="rgba(162,155,254,0.2)" stroke="#a29bfe" stroke-width="1.5"/>
+      <text x="385" y="175" text-anchor="middle" fill="rgba(162,155,254,0.4)" font-family="JetBrains Mono" font-size="9" id="ps-event-count">eventos: 0</text>
+
+      <!-- Subscribers -->
+      <rect x="630" y="16" width="130" height="50" rx="10" fill="#0e1f33" stroke="#3498db" stroke-width="1.5" id="sub-a"/>
+      <text x="695" y="38" text-anchor="middle" fill="#3498db" font-family="Sora" font-size="12" font-weight="700">StockService</text>
+      <text x="695" y="54" text-anchor="middle" fill="rgba(52,152,219,0.5)" font-family="Sora" font-size="9" id="sub-a-status">aguardando</text>
+
+      <rect x="630" y="90" width="130" height="50" rx="10" fill="#0e1f33" stroke="#2ecc71" stroke-width="1.5" id="sub-b"/>
+      <text x="695" y="111" text-anchor="middle" fill="#2ecc71" font-family="Sora" font-size="12" font-weight="700">EmailService</text>
+      <text x="695" y="127" text-anchor="middle" fill="rgba(46,204,113,0.5)" font-family="Sora" font-size="9" id="sub-b-status">aguardando</text>
+
+      <rect x="630" y="164" width="130" height="50" rx="10" fill="#0e1f33" stroke="#f39c12" stroke-width="1.5" id="sub-c"/>
+      <text x="695" y="185" text-anchor="middle" fill="#f39c12" font-family="Sora" font-size="12" font-weight="700">AuditService</text>
+      <text x="695" y="201" text-anchor="middle" fill="rgba(243,156,18,0.5)" font-family="Sora" font-size="9" id="sub-c-status">aguardando</text>
+
+      <rect x="780" y="90" width="108" height="50" rx="10" fill="#0e1f33" stroke="rgba(253,121,168,0.4)" stroke-width="1" id="sub-d" opacity="0"/>
+      <text x="834" y="111" text-anchor="middle" fill="#fd79a8" font-family="Sora" font-size="11" font-weight="700" id="sub-d-name">+Service</text>
+      <text x="834" y="127" text-anchor="middle" fill="rgba(253,121,168,0.4)" font-family="Sora" font-size="9" id="sub-d-status">aguardando</text>
+
+      <!-- Lines broker → subs -->
+      <line x1="465" y1="115" x2="628" y2="41"  stroke="rgba(162,155,254,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="465" y1="115" x2="628" y2="115" stroke="rgba(162,155,254,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="465" y1="115" x2="628" y2="189" stroke="rgba(162,155,254,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="465" y1="115" x2="778" y2="115" stroke="rgba(162,155,254,0.1)" stroke-width="1" stroke-dasharray="4,3" id="line-d"/>
+
+      <!-- Message particles -->
+      <g id="ps-msgs"></g>
+    </svg>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-fanout)">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--c-fanout);display:inline-block"></span>Modelo
+      </div>
+      <h4>Broadcast independente</h4>
+      <p>Cada assinante recebe cópia do evento de forma autônoma. Adicionar assinantes não afeta os existentes.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-topic)">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--c-topic);display:inline-block"></span>Desacoplamento
+      </div>
+      <h4>De espaço</h4>
+      <p>Publisher não conhece IPs ou endpoints dos consumidores. Zero acoplamento direto.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-consumer)">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--c-consumer);display:inline-block"></span>EDA
+      </div>
+      <h4>Event-Driven Architecture</h4>
+      <p>Um evento OrderCreated aciona Stock, Email, Audit e Payment — sem que nenhum se conheça.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:#e67e22">
+        <span style="width:8px;height:8px;border-radius:50%;background:#e67e22;display:inline-block"></span>Tecnologias
+      </div>
+      <h4>RabbitMQ Fanout / MQTT</h4>
+      <p>RabbitMQ Fanout Exchange, AWS SNS, MQTT para IoT, Redis Pub/Sub, Google Pub/Sub.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANEL 3: KAFKA (layout revisto)
+════════════════════════════════════════ -->
+<div class="panel" id="panel-kafka">
+  <div class="panel-title">
+    <span style="color:var(--c-kafka)">⚡</span> Kafka — Log de Commit Distribuído
+  </div>
+  <p class="panel-desc">
+    Kafka não destrói mensagens após o consumo. Mantém um <strong>log imutável</strong> particionado.
+    Múltiplos consumer groups leem de forma independente, cada um com seu próprio <strong>offset</strong>.
+  </p>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="kfk-btn" onclick="appendKafka()">⚡ Produzir evento</button>
+    <button class="ctrl-btn" onclick="consumeGroupA()" style="border-color:#2ecc71;color:#2ecc71">↓ Group A avança offset</button>
+    <button class="ctrl-btn" onclick="consumeGroupB()" style="border-color:#fd79a8;color:#fd79a8">↓ Group B avança offset</button>
+    <button class="ctrl-btn" onclick="resetKafka()">↺ Reset</button>
+  </div>
+
+  <!--
+    Três faixas horizontais bem separadas no SVG:
+    Faixa 1 (y 0–72):   Producers + seta "append"
+    Faixa 2 (y 82–152): Log imutável (blocos)
+    Faixa 3 (y 162–270): Consumer Groups A e B com ponteiros
+  -->
+  <div class="stage" style="min-height:320px;">
+    <svg class="anim-svg" id="kfk-svg" viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- FAIXA 1: Producers -->
+      <text x="14" y="16" fill="rgba(127,179,245,0.55)" font-family="JetBrains Mono" font-size="9" font-weight="700">PRODUCERS</text>
+      <rect x="14"  y="22" width="120" height="38" rx="8" fill="#1a2615" stroke="#f39c12" stroke-width="1.5"/>
+      <text x="74"  y="38" text-anchor="middle" fill="#f39c12" font-family="Sora" font-size="11" font-weight="700">OrderService</text>
+      <text x="74"  y="52" text-anchor="middle" fill="rgba(243,156,18,0.55)" font-family="Sora" font-size="9">producer</text>
+      <rect x="148" y="22" width="120" height="38" rx="8" fill="#1a1e12" stroke="#e67e22" stroke-width="1.5"/>
+      <text x="208" y="38" text-anchor="middle" fill="#e67e22" font-family="Sora" font-size="11" font-weight="700">PaymentSvc</text>
+      <text x="208" y="52" text-anchor="middle" fill="rgba(230,126,34,0.55)" font-family="Sora" font-size="9">producer</text>
+      <!-- setas ↓ para a faixa do log -->
+      <line x1="74"  y1="60" x2="74"  y2="76" stroke="rgba(243,156,18,0.5)" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <polygon points="69,74 74,81 79,74" fill="rgba(243,156,18,0.6)"/>
+      <line x1="208" y1="60" x2="208" y2="76" stroke="rgba(230,126,34,0.5)" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <polygon points="203,74 208,81 213,74" fill="rgba(230,126,34,0.6)"/>
+
+      <!-- FAIXA 2: Log imutável -->
+      <rect x="0" y="82" width="860" height="64" rx="0" fill="rgba(127,179,245,0.04)"/>
+      <line x1="0" y1="82"  x2="860" y2="82"  stroke="rgba(127,179,245,0.15)" stroke-width="1"/>
+      <line x1="0" y1="146" x2="860" y2="146" stroke="rgba(127,179,245,0.15)" stroke-width="1"/>
+      <text x="14" y="78" fill="rgba(127,179,245,0.6)" font-family="JetBrains Mono" font-size="9" font-weight="700">LOG IMUTÁVEL · PARTIÇÃO 0 · retenção 7 dias</text>
+      <!-- container dos blocos (JS injeta aqui) -->
+      <g id="kfk-log-g"></g>
+      <!-- flash "novo bloco" -->
+      <g id="kfk-append-indicator" opacity="0">
+        <rect id="kfk-flash-rect" x="14" y="87" width="62" height="52" rx="5" fill="rgba(85,239,196,0.15)" stroke="#55efc4" stroke-width="2"/>
+        <text x="45" y="118" text-anchor="middle" fill="#55efc4" font-family="JetBrains Mono" font-size="22" font-weight="700">+</text>
+      </g>
+
+      <!-- FAIXA 3: Consumer Groups (não sobrepõem — A acima, B abaixo) -->
+      <text x="14" y="160" fill="rgba(127,179,245,0.55)" font-family="JetBrains Mono" font-size="9" font-weight="700">CONSUMER GROUPS</text>
+
+      <!-- GROUP A (linha pontilhada saindo do bloco, retângulo abaixo) -->
+      <line id="kfk-ptr-a-line"  x1="45" y1="146" x2="45" y2="170" stroke="#2ecc71" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon id="kfk-ptr-a-arrow" points="40,170 45,177 50,170" fill="#2ecc71"/>
+      <rect id="kfk-ptr-a-box" x="4" y="177" width="152" height="38" rx="8" fill="rgba(46,204,113,0.12)" stroke="#2ecc71" stroke-width="1.5"/>
+      <text id="kfk-ptr-a-name" x="80" y="193" text-anchor="middle" fill="#2ecc71" font-family="Sora" font-size="10" font-weight="700">Group A · AuditService</text>
+      <text id="kfk-ptr-a-lbl"  x="80" y="208" text-anchor="middle" fill="#2ecc71" font-family="JetBrains Mono" font-size="9">offset: 0</text>
+
+      <!-- GROUP B (deslocado 160px à direita para não colidir com A) -->
+      <line id="kfk-ptr-b-line"  x1="205" y1="146" x2="205" y2="222" stroke="#fd79a8" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon id="kfk-ptr-b-arrow" points="200,222 205,229 210,222" fill="#fd79a8"/>
+      <rect id="kfk-ptr-b-box" x="164" y="229" width="160" height="38" rx="8" fill="rgba(253,121,168,0.12)" stroke="#fd79a8" stroke-width="1.5"/>
+      <text id="kfk-ptr-b-name" x="244" y="245" text-anchor="middle" fill="#fd79a8" font-family="Sora" font-size="10" font-weight="700">Group B · AnalyticsSvc</text>
+      <text id="kfk-ptr-b-lbl"  x="244" y="260" text-anchor="middle" fill="#fd79a8" font-family="JetBrains Mono" font-size="9">offset: 0</text>
+
+      <!-- Nota explicativa à direita, fora da área dos ponteiros -->
+      <rect x="560" y="162" width="294" height="82" rx="8" fill="rgba(127,179,245,0.06)" stroke="rgba(127,179,245,0.2)" stroke-width="1"/>
+      <text x="707" y="180" text-anchor="middle" fill="rgba(127,179,245,0.75)" font-family="Sora" font-size="10" font-weight="700">Por que dois offsets independentes?</text>
+      <text x="572" y="196" fill="rgba(127,179,245,0.55)" font-family="Sora" font-size="9">• O log NÃO é apagado quando Group A lê.</text>
+      <text x="572" y="210" fill="rgba(127,179,245,0.55)" font-family="Sora" font-size="9">• Group B lê o mesmo evento mais tarde.</text>
+      <text x="572" y="224" fill="rgba(127,179,245,0.55)" font-family="Sora" font-size="9">• Cada group avança no seu próprio ritmo.</text>
+      <text x="572" y="238" fill="rgba(127,179,245,0.35)" font-family="Sora" font-size="9">→ Impossível num MOM clássico (fila).</text>
+    </svg>
+  </div>
+
+  <!-- Offset tracker HTML (fora do SVG, sem sobreposição) -->
+  <div class="offset-row">
+    <div class="offset-card" style="border-color:rgba(46,204,113,0.4)">
+      <div class="oc-name">Group A · AuditService</div>
+      <div class="oc-val" id="off-a-val">offset: 0 / 0</div>
+    </div>
+    <div class="offset-card" style="border-color:rgba(253,121,168,0.4)">
+      <div class="oc-name">Group B · AnalyticsService</div>
+      <div class="oc-val" style="color:var(--c-fanout)" id="off-b-val">offset: 0 / 0</div>
+    </div>
+    <div class="offset-card" style="border-color:rgba(85,239,196,0.3)">
+      <div class="oc-name">Eventos no log (não apagados)</div>
+      <div class="oc-val" style="color:var(--c-log)" id="kfk-total-val">0 eventos</div>
+    </div>
+  </div>
+
+  <!-- Log viewer terminal -->
+  <div class="log-viewer" id="kfk-log-viewer">
+    <div style="color:rgba(127,179,245,0.4);font-size:.78rem;">// Partição 0 — aguardando eventos…</div>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-kafka)"><span style="width:8px;height:8px;border-radius:50%;background:var(--c-kafka);display:inline-block"></span>Log imutável</div>
+      <h4>Append-only</h4>
+      <p>Mensagens nunca são apagadas por consumo. O log cresce sequencialmente; cada entrada tem offset único e permanente.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-log)"><span style="width:8px;height:8px;border-radius:50%;background:var(--c-log);display:inline-block"></span>Consumer Groups</div>
+      <h4>Offsets independentes</h4>
+      <p>Group A no off=1, Group B no off=5 — cada um avança no seu ritmo, sem interferir no outro e sem apagar o log.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:var(--c-topic)"><span style="width:8px;height:8px;border-radius:50%;background:var(--c-topic);display:inline-block"></span>Reprocessamento</div>
+      <h4>Time-travel</h4>
+      <p>Possível reler eventos do início. Essencial para auditoria, replay após bug e onboarding de novos serviços.</p>
+    </div>
+    <div class="concept-card">
+      <div class="label" style="color:#f39c12"><span style="width:8px;height:8px;border-radius:50%;background:#f39c12;display:inline-block"></span>Diferencial</div>
+      <h4>Não é uma fila</h4>
+      <p>Num MOM clássico a mensagem some após o ACK. No Kafka, ela permanece — vários groups leem o mesmo evento de forma independente.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANEL 4: COMPARATIVO
+════════════════════════════════════════ -->
+<div class="panel" id="panel-compare">
+  <div class="panel-title">
+    <span style="color:var(--c-log)">📊</span> Comparativo Visual — Os Três Modelos
+  </div>
+  <p class="panel-desc">
+    Visualize as diferenças fundamentais de comportamento entre os modelos de MOM. A escolha impacta diretamente escalabilidade, garantias de entrega e complexidade operacional.
+  </p>
+
+  <div class="stage" style="min-height:auto;padding:32px 28px;">
+    <svg class="anim-svg" viewBox="0 0 860 360" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- Fila P2P -->
+      <text x="145" y="22" text-anchor="middle" fill="#e8f0f7" font-family="Sora" font-size="13" font-weight="700">📬 Fila P2P</text>
+      <rect x="20" y="34" width="250" height="140" rx="10" fill="rgba(46,204,113,0.05)" stroke="rgba(46,204,113,0.25)" stroke-width="1.5"/>
+      <!-- producer -->
+      <rect x="34" y="58" width="60" height="32" rx="6" fill="#1a3226" stroke="#f39c12" stroke-width="1.5"/>
+      <text x="64" y="73" text-anchor="middle" fill="#f39c12" font-family="Sora" font-size="9" font-weight="700">Prod</text>
+      <text x="64" y="85" text-anchor="middle" fill="rgba(243,156,18,0.5)" font-family="Sora" font-size="7">→ msg</text>
+      <!-- broker -->
+      <rect x="118" y="50" width="68" height="48" rx="6" fill="#0f2416" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="152" y="70" text-anchor="middle" fill="#2ecc71" font-family="Sora" font-size="9" font-weight="700">Queue</text>
+      <rect x="126" y="76" width="14" height="10" rx="2" fill="#2ecc71" opacity=".5"/>
+      <rect x="143" y="76" width="14" height="10" rx="2" fill="#2ecc71" opacity=".3"/>
+      <rect x="160" y="76" width="14" height="10" rx="2" fill="#2ecc71" opacity=".15"/>
+      <!-- consumer (1 only) -->
+      <rect x="208" y="58" width="52" height="32" rx="6" fill="#0e1f33" stroke="#3498db" stroke-width="1.5"/>
+      <text x="234" y="73" text-anchor="middle" fill="#3498db" font-family="Sora" font-size="9" font-weight="700">Cons A</text>
+      <text x="234" y="85" text-anchor="middle" fill="rgba(52,152,219,0.4)" font-family="Sora" font-size="7">processa</text>
+      <!-- arrows -->
+      <line x1="94" y1="74" x2="118" y2="74" stroke="rgba(243,156,18,0.5)" stroke-width="1.5"/>
+      <line x1="186" y1="74" x2="208" y2="74" stroke="rgba(52,152,219,0.5)" stroke-width="1.5"/>
+      <!-- cross on other consumers -->
+      <rect x="208" y="108" width="52" height="28" rx="6" fill="#0e1f33" stroke="rgba(52,152,219,0.2)" stroke-width="1"/>
+      <text x="234" y="122" text-anchor="middle" fill="rgba(52,152,219,0.3)" font-family="Sora" font-size="8">Cons B</text>
+      <text x="234" y="134" text-anchor="middle" fill="rgba(52,152,219,0.2)" font-family="Sora" font-size="7">não recebe</text>
+      <!-- label: msg destroyed -->
+      <rect x="34" y="120" width="160" height="38" rx="6" fill="rgba(231,76,60,0.08)" stroke="rgba(231,76,60,0.3)" stroke-width="1"/>
+      <text x="114" y="136" text-anchor="middle" fill="#e74c3c" font-family="JetBrains Mono" font-size="8">✗ msg removida</text>
+      <text x="114" y="150" text-anchor="middle" fill="rgba(231,76,60,0.6)" font-family="JetBrains Mono" font-size="7.5">após ACK do Consumer A</text>
+
+      <!-- Pub/Sub -->
+      <text x="435" y="22" text-anchor="middle" fill="#e8f0f7" font-family="Sora" font-size="13" font-weight="700">📡 Pub/Sub</text>
+      <rect x="310" y="34" width="250" height="140" rx="10" fill="rgba(162,155,254,0.05)" stroke="rgba(162,155,254,0.25)" stroke-width="1.5"/>
+      <rect x="324" y="58" width="60" height="32" rx="6" fill="#1f0a18" stroke="#fd79a8" stroke-width="1.5"/>
+      <text x="354" y="78" text-anchor="middle" fill="#fd79a8" font-family="Sora" font-size="9" font-weight="700">Publisher</text>
+      <circle cx="446" cy="74" r="24" fill="#110f1f" stroke="#a29bfe" stroke-width="1.5"/>
+      <text x="446" y="70" text-anchor="middle" fill="#a29bfe" font-family="Sora" font-size="8" font-weight="700">Tópico</text>
+      <text x="446" y="82" text-anchor="middle" fill="rgba(162,155,254,0.5)" font-family="JetBrains Mono" font-size="7">orders</text>
+      <rect x="494" y="44" width="54" height="22" rx="5" fill="#0e1f33" stroke="#3498db" stroke-width="1.5"/>
+      <text x="521" y="59" text-anchor="middle" fill="#3498db" font-family="Sora" font-size="8" font-weight="700">Sub A ✓</text>
+      <rect x="494" y="72" width="54" height="22" rx="5" fill="#0e1f33" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="521" y="87" text-anchor="middle" fill="#2ecc71" font-family="Sora" font-size="8" font-weight="700">Sub B ✓</text>
+      <rect x="494" y="100" width="54" height="22" rx="5" fill="#0e1f33" stroke="#f39c12" stroke-width="1.5"/>
+      <text x="521" y="115" text-anchor="middle" fill="#f39c12" font-family="Sora" font-size="8" font-weight="700">Sub C ✓</text>
+      <line x1="384" y1="74" x2="422" y2="74" stroke="rgba(253,121,168,0.5)" stroke-width="1.5"/>
+      <line x1="470" y1="60" x2="494" y2="55" stroke="rgba(162,155,254,0.5)" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <line x1="470" y1="74" x2="494" y2="83" stroke="rgba(162,155,254,0.5)" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <line x1="470" y1="85" x2="494" y2="111" stroke="rgba(162,155,254,0.5)" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <rect x="324" y="122" width="160" height="38" rx="6" fill="rgba(162,155,254,0.08)" stroke="rgba(162,155,254,0.3)" stroke-width="1"/>
+      <text x="404" y="138" text-anchor="middle" fill="#a29bfe" font-family="JetBrains Mono" font-size="8">N cópias entregues</text>
+      <text x="404" y="152" text-anchor="middle" fill="rgba(162,155,254,0.6)" font-family="JetBrains Mono" font-size="7.5">produtor ignora destinatários</text>
+
+      <!-- Kafka Log -->
+      <text x="730" y="22" text-anchor="middle" fill="#e8f0f7" font-family="Sora" font-size="13" font-weight="700">⚡ Kafka Log</text>
+      <rect x="600" y="34" width="250" height="140" rx="10" fill="rgba(127,179,245,0.05)" stroke="rgba(127,179,245,0.25)" stroke-width="1.5"/>
+      <!-- log row -->
+      <text x="614" y="58" fill="rgba(127,179,245,0.5)" font-family="JetBrains Mono" font-size="8">offset →</text>
+      <rect x="614" y="64" width="26" height="22" rx="3" fill="#1a1a2e" stroke="#7fb3f5" stroke-width="1.5"/>
+      <text x="627" y="79" text-anchor="middle" fill="#7fb3f5" font-family="JetBrains Mono" font-size="8">0</text>
+      <rect x="644" y="64" width="26" height="22" rx="3" fill="#1a1a2e" stroke="#7fb3f5" stroke-width="1.5"/>
+      <text x="657" y="79" text-anchor="middle" fill="#7fb3f5" font-family="JetBrains Mono" font-size="8">1</text>
+      <rect x="674" y="64" width="26" height="22" rx="3" fill="#1a1a2e" stroke="#7fb3f5" stroke-width="1.5"/>
+      <text x="687" y="79" text-anchor="middle" fill="#7fb3f5" font-family="JetBrains Mono" font-size="8">2</text>
+      <rect x="704" y="64" width="26" height="22" rx="3" fill="#1a1a2e" stroke="rgba(127,179,245,0.4)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="717" y="79" text-anchor="middle" fill="rgba(127,179,245,0.4)" font-family="JetBrains Mono" font-size="8">…</text>
+      <!-- Group A pointer -->
+      <line x1="627" y1="86" x2="627" y2="105" stroke="#2ecc71" stroke-width="1.5"/>
+      <rect x="608" y="105" width="80" height="18" rx="4" fill="rgba(46,204,113,0.1)" stroke="#2ecc71" stroke-width="1"/>
+      <text x="648" y="118" text-anchor="middle" fill="#2ecc71" font-family="JetBrains Mono" font-size="8">Group A off=0</text>
+      <!-- Group B pointer -->
+      <line x1="687" y1="86" x2="687" y2="126" stroke="#fd79a8" stroke-width="1.5"/>
+      <rect x="665" y="126" width="80" height="18" rx="4" fill="rgba(253,121,168,0.1)" stroke="#fd79a8" stroke-width="1"/>
+      <text x="705" y="139" text-anchor="middle" fill="#fd79a8" font-family="JetBrains Mono" font-size="8">Group B off=2</text>
+      <rect x="600" y="152" width="240" height="16" rx="4" fill="rgba(85,239,196,0.08)" stroke="rgba(85,239,196,0.3)" stroke-width="1"/>
+      <text x="720" y="164" text-anchor="middle" fill="#55efc4" font-family="JetBrains Mono" font-size="8">log imutável · retenção 7 dias · replay possível</text>
+
+      <!-- ══ Tabela de diferenças ══ -->
+      <rect x="0" y="196" width="860" height="160" rx="12" fill="rgba(255,255,255,0.02)" stroke="var(--border)" stroke-width="1"/>
+
+      <!-- headers -->
+      <text x="14" y="218" fill="rgba(232,240,247,0.5)" font-family="Sora" font-size="10" font-weight="700">Dimensão</text>
+      <text x="220" y="218" fill="#2ecc71" font-family="Sora" font-size="10" font-weight="700">Fila P2P</text>
+      <text x="420" y="218" fill="#a29bfe" font-family="Sora" font-size="10" font-weight="700">Pub/Sub Tópico</text>
+      <text x="640" y="218" fill="#7fb3f5" font-family="Sora" font-size="10" font-weight="700">Kafka Log</text>
+      <line x1="10" y1="224" x2="850" y2="224" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+
+      <!-- row 1 -->
+      <text x="14" y="240" fill="var(--muted)" font-family="Sora" font-size="9">Destinatários</text>
+      <text x="220" y="240" fill="#e8f0f7" font-family="Sora" font-size="9">Exatamente 1</text>
+      <text x="420" y="240" fill="#e8f0f7" font-family="Sora" font-size="9">Todos os assinantes</text>
+      <text x="640" y="240" fill="#e8f0f7" font-family="Sora" font-size="9">N consumer groups independentes</text>
+      <!-- row 2 -->
+      <text x="14" y="258" fill="var(--muted)" font-family="Sora" font-size="9">Msg após consumo</text>
+      <text x="220" y="258" fill="#e74c3c" font-family="Sora" font-size="9">Removida (ACK)</text>
+      <text x="420" y="258" fill="#f39c12" font-family="Sora" font-size="9">Retida por TTL</text>
+      <text x="640" y="258" fill="#55efc4" font-family="Sora" font-size="9">Retida por retenção (7 d padrão)</text>
+      <!-- row 3 -->
+      <text x="14" y="276" fill="var(--muted)" font-family="Sora" font-size="9">Reprocessamento</text>
+      <text x="220" y="276" fill="#e74c3c" font-family="Sora" font-size="9">Não (msg destruída)</text>
+      <text x="420" y="276" fill="#f39c12" font-family="Sora" font-size="9">Limitado (dentro do TTL)</text>
+      <text x="640" y="276" fill="#55efc4" font-family="Sora" font-size="9">Sim — offset pode recuar</text>
+      <!-- row 4 -->
+      <text x="14" y="294" fill="var(--muted)" font-family="Sora" font-size="9">Ordenação</text>
+      <text x="220" y="294" fill="#e8f0f7" font-family="Sora" font-size="9">Global (1 consumer)</text>
+      <text x="420" y="294" fill="#e8f0f7" font-family="Sora" font-size="9">Não garantida</text>
+      <text x="640" y="294" fill="#e8f0f7" font-family="Sora" font-size="9">Por partição</text>
+      <!-- row 5 -->
+      <text x="14" y="312" fill="var(--muted)" font-family="Sora" font-size="9">Exemplo</text>
+      <text x="220" y="312" fill="#e8f0f7" font-family="Sora" font-size="9">RabbitMQ Direct/Topic</text>
+      <text x="420" y="312" fill="#e8f0f7" font-family="Sora" font-size="9">RabbitMQ Fanout · MQTT</text>
+      <text x="640" y="312" fill="#e8f0f7" font-family="Sora" font-size="9">Apache Kafka · AWS Kinesis</text>
+      <!-- row 6 -->
+      <text x="14" y="330" fill="var(--muted)" font-family="Sora" font-size="9">Caso de uso</text>
+      <text x="220" y="330" fill="#e8f0f7" font-family="Sora" font-size="9">Task queue, pagamentos</text>
+      <text x="420" y="330" fill="#e8f0f7" font-family="Sora" font-size="9">Notificações, IoT</text>
+      <text x="640" y="330" fill="#e8f0f7" font-family="Sora" font-size="9">Audit, streaming, CDC, CQRS</text>
+
+      <line x1="10" y1="228" x2="10" y2="344" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      <line x1="210" y1="228" x2="210" y2="344" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      <line x1="410" y1="228" x2="410" y2="344" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      <line x1="630" y1="228" x2="630" y2="344" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <div class="concept-grid">
+    <div class="concept-card" style="border-left:3px solid #2ecc71">
+      <div class="label" style="color:#2ecc71">Fila P2P</div>
+      <h4>Use quando…</h4>
+      <p>Cada tarefa deve ser processada exatamente uma vez. Competing consumers para escala. Retry + DLQ granular.</p>
+      <div style="margin-top:8px">
+        <span class="pill" style="color:#2ecc71">RabbitMQ</span>
+        <span class="pill" style="color:#2ecc71">AWS SQS</span>
+      </div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid #a29bfe">
+      <div class="label" style="color:#a29bfe">Pub/Sub</div>
+      <h4>Use quando…</h4>
+      <p>Múltiplos serviços precisam reagir ao mesmo evento. Broadcast sem conhecer os assinantes.</p>
+      <div style="margin-top:8px">
+        <span class="pill" style="color:#a29bfe">RabbitMQ Fanout</span>
+        <span class="pill" style="color:#a29bfe">MQTT</span>
+      </div>
+    </div>
+    <div class="concept-card" style="border-left:3px solid #7fb3f5">
+      <div class="label" style="color:#7fb3f5">Kafka Log</div>
+      <h4>Use quando…</h4>
+      <p>Histórico completo, reprocessamento, múltiplos consumers independentes, throughput alto contínuo.</p>
+      <div style="margin-top:8px">
+        <span class="pill" style="color:#7fb3f5">Kafka</span>
+        <span class="pill" style="color:#7fb3f5">Kinesis</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="citation-bar">
+  EUGSTER, P. T. et al. The Many Faces of Publish/Subscribe. <em>ACM Computing Surveys</em>, v. 35, n. 2, pp. 114–131, 2003. DOI: 10.1145/857076.857078 &nbsp;|&nbsp;
+  KREPS, J.; NARKHEDE, N.; RAO, J. Kafka: A Distributed Messaging System for Log Processing. <em>NetDB@VLDB</em>, 2011 &nbsp;|&nbsp;
+  KLEPPMANN, M. <em>Designing Data-Intensive Applications.</em> Cap. 11. O'Reilly, 2017.
+</div>
+
+<script>
+/* ════════════════════════════════
+   TAB NAVIGATION
+════════════════════════════════ */
+function switchTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.tab-btn')[['p2p','pubsub','kafka','compare'].indexOf(id)].classList.add('active');
+}
+
+/* ════════════════════════════════
+   P2P ANIMATION
+════════════════════════════════ */
+let p2pRunning = false, p2pMulti = false;
+let p2pQueue = 0, p2pIntervalId = null;
+const P2P_MAX = 4;
+const COLORS = ['#e74c3c','#f39c12','#e67e22','#9b59b6'];
+const LABELS = ['M1','M2','M3','M4'];
+
+function toggleP2P() {
+  if (p2pRunning) {
+    p2pRunning = false;
+    clearInterval(p2pIntervalId);
+    document.getElementById('p2p-btn').textContent = '▶ Enviar mensagem';
+    document.getElementById('p2p-btn').classList.remove('running');
+  } else {
+    p2pRunning = true;
+    document.getElementById('p2p-btn').textContent = '■ Parar';
+    document.getElementById('p2p-btn').classList.add('running');
+    sendP2PMsg();
+    p2pIntervalId = setInterval(sendP2PMsg, 2200);
+  }
+}
+
+function sendMultiP2P() {
+  p2pMulti = !p2pMulti;
+  const btn = document.getElementById('p2p-multi-btn');
+  const lbl = document.getElementById('p2p-mode-label');
+  if (p2pMulti) {
+    // Show competing consumers
+    document.getElementById('cons-b-box').setAttribute('opacity','1');
+    document.getElementById('cons-c-box').setAttribute('opacity','1');
+    ['cons-b-box','cons-c-box'].forEach(id => {
+      document.getElementById(id).setAttribute('stroke','#3498db');
+    });
+    btn.textContent = '⚡ Modo: Simples';
+    lbl.textContent = 'Competing consumers (3 workers)';
+    // Reposition consumer A
+    document.getElementById('cons-a-box').setAttribute('x','630');
+    document.getElementById('cons-a-box').setAttribute('y','70');
+    document.getElementById('cons-a-box').setAttribute('width','100');
+    document.getElementById('cons-a-box').setAttribute('height','40');
+  } else {
+    document.getElementById('cons-b-box').setAttribute('opacity','0.3');
+    document.getElementById('cons-c-box').setAttribute('opacity','0.3');
+    btn.textContent = '⚡ Modo: Competing Consumers';
+    lbl.textContent = '1 consumidor';
+  }
+}
+
+let msgSeq = 0;
+function sendP2PMsg() {
+  const svg = document.getElementById('p2p-svg');
+  const g = document.getElementById('p2p-msgs');
+  const idx = msgSeq % P2P_MAX;
+  const color = COLORS[idx];
+  const label = LABELS[idx];
+  msgSeq++;
+
+  // Update queue visual
+  p2pQueue = Math.min(p2pQueue + 1, P2P_MAX);
+  updateQueueSlots();
+
+  // Create flying message
+  const msg = document.createElementNS('http://www.w3.org/2000/svg','g');
+  const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circ.setAttribute('r','12'); circ.setAttribute('fill', color); circ.setAttribute('opacity','0.9');
+  const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  txt.setAttribute('text-anchor','middle'); txt.setAttribute('dy','4');
+  txt.setAttribute('fill','white'); txt.setAttribute('font-family','JetBrains Mono');
+  txt.setAttribute('font-size','8'); txt.setAttribute('font-weight','700');
+  txt.textContent = label;
+  msg.appendChild(circ); msg.appendChild(txt);
+  g.appendChild(msg);
+
+  // Phase 1: Producer → Broker (0 → 480ms)
+  let t = 0;
+  const start = {x: 140, y: 100};
+  const mid   = {x: 390, y: 100};
+  const consumers = p2pMulti
+    ? [{x:690,y:40},{x:820,y:64},{x:820,y:132}]
+    : [{x:690,y:100}];
+  const target = consumers[msgSeq % consumers.length];
+
+  const step = () => {
+    t += 16;
+    let x, y;
+    if (t < 500) {
+      const prog = t / 500;
+      x = start.x + (mid.x - start.x) * easeInOut(prog);
+      y = start.y + Math.sin(prog * Math.PI) * -15;
+    } else if (t < 1000) {
+      // pause in queue
+      x = mid.x; y = mid.y;
+      if (t < 520) { p2pQueue = Math.max(0, p2pQueue -1); updateQueueSlots(); }
+    } else {
+      const prog = (t - 1000) / 600;
+      if (prog >= 1) {
+        g.removeChild(msg);
+        // Show ACK
+        showAck();
+        highlightConsumer(p2pMulti ? ['cons-a-box','cons-b-box','cons-c-box'][msgSeq % 3] : 'cons-a-box');
+        return;
+      }
+      x = mid.x + (target.x - mid.x) * easeInOut(prog);
+      y = mid.y + (target.y - mid.y) * easeInOut(prog);
+    }
+    msg.setAttribute('transform', `translate(${x},${y})`);
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function updateQueueSlots() {
+  for (let i = 0; i < P2P_MAX; i++) {
+    const slot = document.getElementById('slot' + i);
+    if (!slot) continue;
+    if (i < p2pQueue) {
+      slot.setAttribute('fill', COLORS[i] + '55');
+      slot.setAttribute('stroke', COLORS[i]);
+    } else {
+      slot.setAttribute('fill', '#1a3d26');
+      slot.setAttribute('stroke', '#2ecc71');
+    }
+  }
+  const c = document.getElementById('p2p-queue-count');
+  if (c) c.textContent = 'msgs: ' + p2pQueue;
+}
+
+let ackTimer;
+function showAck() {
+  const lbl = document.getElementById('p2p-ack-label');
+  lbl.setAttribute('fill', '#2ecc71');
+  clearTimeout(ackTimer);
+  ackTimer = setTimeout(() => lbl.setAttribute('fill','rgba(46,204,113,0)'), 1500);
+}
+
+function highlightConsumer(id) {
+  const box = document.getElementById(id);
+  if (!box) return;
+  const orig = box.getAttribute('stroke');
+  box.setAttribute('stroke','#55efc4');
+  box.setAttribute('stroke-width','2.5');
+  setTimeout(() => {
+    box.setAttribute('stroke', orig || '#3498db');
+    box.setAttribute('stroke-width','1.5');
+  }, 800);
+}
+
+/* ════════════════════════════════
+   PUB/SUB ANIMATION
+════════════════════════════════ */
+let psRunning = false, psIntervalId = null;
+let psSubCount = 3, psEvt = 0;
+const SUB_POSITIONS = [
+  {x:695, y:41, color:'#3498db', id:'sub-a-status'},
+  {x:695, y:115, color:'#2ecc71', id:'sub-b-status'},
+  {x:695, y:189, color:'#f39c12', id:'sub-c-status'},
+  {x:834, y:115, color:'#fd79a8', id:'sub-d-status'},
+];
+const SUB_LABELS = ['StockSvc','EmailSvc','AuditSvc','AnalyticsSvc'];
+
+function togglePubSub() {
+  if (psRunning) {
+    psRunning = false;
+    clearInterval(psIntervalId);
+    document.getElementById('ps-btn').textContent = '▶ Publicar evento';
+    document.getElementById('ps-btn').classList.remove('running');
+  } else {
+    psRunning = true;
+    document.getElementById('ps-btn').textContent = '■ Parar';
+    document.getElementById('ps-btn').classList.add('running');
+    publishEvent();
+    psIntervalId = setInterval(publishEvent, 2400);
+  }
+}
+
+function addSubscriber() {
+  if (psSubCount >= 4) return;
+  psSubCount++;
+  document.getElementById('ps-sub-count').textContent = psSubCount + ' assinantes';
+  document.getElementById('sub-d').setAttribute('opacity','1');
+  document.getElementById('line-d').setAttribute('stroke','rgba(162,155,254,0.2)');
+}
+
+function publishEvent() {
+  psEvt++;
+  document.getElementById('ps-event-count').textContent = 'eventos: ' + psEvt;
+  const g = document.getElementById('ps-msgs');
+
+  // One ball per subscriber
+  for (let i = 0; i < psSubCount; i++) {
+    const sub = SUB_POSITIONS[i];
+    const delay = i * 120;
+    const color = sub.color;
+
+    setTimeout(() => {
+      const msg = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      msg.setAttribute('r','10');
+      msg.setAttribute('fill', color);
+      msg.setAttribute('opacity','0');
+      g.appendChild(msg);
+
+      let t = 0;
+      const sx = 385, sy = 115;
+      const tx = sub.x, ty = sub.y;
+
+      const step = () => {
+        t += 14;
+        const prog = Math.min(t / 600, 1);
+        const ease = easeInOut(prog);
+        const x = sx + (tx - sx) * ease;
+        const y = sy + (ty - sy) * ease;
+        msg.setAttribute('cx', x);
+        msg.setAttribute('cy', y);
+        msg.setAttribute('opacity', prog < 0.9 ? prog * 1.1 : (1 - prog) * 11);
+        if (prog < 1) {
+          requestAnimationFrame(step);
+        } else {
+          g.removeChild(msg);
+          // Flash subscriber
+          const statusEl = document.getElementById(sub.id);
+          if (statusEl) {
+            statusEl.textContent = '✓ recebeu';
+            statusEl.setAttribute('fill', color);
+            setTimeout(() => {
+              statusEl.textContent = 'aguardando';
+              statusEl.setAttribute('fill', color.replace(')',',0.5)').replace('rgb','rgba'));
+            }, 900);
+          }
+        }
+      };
+      requestAnimationFrame(step);
+    }, delay);
+  }
+}
+
+/* ════════════════════════════════
+   KAFKA ANIMATION (layout revisto)
+   Faixa log: y=82, altura=64 → centro y=114
+   Blocos: x a partir de 14, largura=62, gap=5
+════════════════════════════════ */
+let kafkaLog = [];
+let offsetA = 0, offsetB = 0;
+const KAFKA_EVENTS = [
+  {key:'order_id', val:'ORD-001', color:'#f39c12'},
+  {key:'payment',  val:'PAY-042', color:'#e67e22'},
+  {key:'order_id', val:'ORD-002', color:'#f39c12'},
+  {key:'stock',    val:'SKU-889', color:'#2ecc71'},
+  {key:'order_id', val:'ORD-003', color:'#f39c12'},
+  {key:'payment',  val:'PAY-043', color:'#e67e22'},
+  {key:'audit',    val:'AUD-007', color:'#a29bfe'},
+];
+const BLK_W = 62, BLK_H = 52, BLK_GAP = 5, BLK_X0 = 14, BLK_Y = 87;
+const BLK_STEP = BLK_W + BLK_GAP;
+const MAX_VISIBLE = 12;
+
+function appendKafka() {
+  const evtIdx = kafkaLog.length % KAFKA_EVENTS.length;
+  const evt = KAFKA_EVENTS[evtIdx];
+  kafkaLog.push({offset: kafkaLog.length, ...evt});
+  renderKafkaLog();
+  appendLogEntry(kafkaLog.length - 1, evt);
+  updateOffsetDisplay();
+  flashAppend();
+}
+
+function renderKafkaLog() {
+  const g = document.getElementById('kfk-log-g');
+  g.innerHTML = '';
+  const start = Math.max(0, kafkaLog.length - MAX_VISIBLE);
+  const visible = kafkaLog.slice(start);
+
+  visible.forEach((evt, i) => {
+    const x = BLK_X0 + i * BLK_STEP;
+    const isNew = i === visible.length - 1;
+
+    const rect = mkSVG('rect', {
+      x, y: BLK_Y, width: BLK_W, height: BLK_H, rx: 6,
+      fill: evt.color + '1a', stroke: evt.color, 'stroke-width': isNew ? '2.5' : '1.5',
+    });
+    if (isNew) rect.style.animation = 'blockIn .3s ease';
+
+    const tOff = mkSVG('text', {
+      x: x + BLK_W/2, y: BLK_Y + 16,
+      'text-anchor':'middle', fill:'rgba(127,179,245,0.7)',
+      'font-family':'JetBrains Mono', 'font-size':'8',
+    });
+    tOff.textContent = 'off:' + evt.offset;
+
+    const tKey = mkSVG('text', {
+      x: x + BLK_W/2, y: BLK_Y + 30,
+      'text-anchor':'middle', fill: evt.color,
+      'font-family':'JetBrains Mono', 'font-size':'8', 'font-weight':'700',
+    });
+    tKey.textContent = evt.val;
+
+    const tType = mkSVG('text', {
+      x: x + BLK_W/2, y: BLK_Y + 44,
+      'text-anchor':'middle', fill: evt.color.replace(')', ',0.55)').replace('#','rgba(').replace(/^rgba\(([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2}),/i, (_, r,g,b) => `rgba(${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)},`),
+      'font-family':'JetBrains Mono', 'font-size':'7',
+    });
+    tType.textContent = evt.key;
+
+    g.append(rect, tOff, tKey, tType);
+  });
+
+  // Ponteiro Group A
+  updatePointer('a', offsetA, start, visible.length);
+  // Ponteiro Group B
+  updatePointer('b', offsetB, start, visible.length);
+}
+
+function updatePointer(grp, offset, start, visLen) {
+  const shifted = offset - start;
+  const blockCenterX = BLK_X0 + shifted * BLK_STEP + BLK_W / 2;
+  const inView = shifted >= 0 && shifted < visLen;
+
+  const lineEl  = document.getElementById('kfk-ptr-' + grp + '-line');
+  const arrowEl = document.getElementById('kfk-ptr-' + grp + '-arrow');
+  const boxEl   = document.getElementById('kfk-ptr-' + grp + '-box');
+  const lblEl   = document.getElementById('kfk-ptr-' + grp + '-lbl');
+  if (!lineEl) return;
+
+  const visible = inView ? '1' : '0.25';
+  [lineEl, arrowEl, boxEl, lblEl].forEach(el => el && el.setAttribute('opacity', visible));
+
+  if (!inView) return;
+
+  if (grp === 'a') {
+    // Group A: seta curta, caixa abaixo da linha do log
+    lineEl.setAttribute('x1', blockCenterX);
+    lineEl.setAttribute('x2', blockCenterX);
+    lineEl.setAttribute('y1', BLK_Y + BLK_H);
+    lineEl.setAttribute('y2', 170);
+    arrowEl.setAttribute('points', `${blockCenterX-5},170 ${blockCenterX},177 ${blockCenterX+5},170`);
+    boxEl.setAttribute('x', blockCenterX - 76);
+    document.getElementById('kfk-ptr-a-lbl').setAttribute('x', blockCenterX);
+    document.getElementById('kfk-ptr-a-lbl').textContent = 'offset: ' + offset;
+  } else {
+    // Group B: seta mais longa, caixa deslocada para baixo
+    lineEl.setAttribute('x1', blockCenterX);
+    lineEl.setAttribute('x2', blockCenterX);
+    lineEl.setAttribute('y1', BLK_Y + BLK_H);
+    lineEl.setAttribute('y2', 222);
+    arrowEl.setAttribute('points', `${blockCenterX-5},222 ${blockCenterX},229 ${blockCenterX+5},222`);
+    boxEl.setAttribute('x', blockCenterX - 80);
+    document.getElementById('kfk-ptr-b-lbl').setAttribute('x', blockCenterX);
+    document.getElementById('kfk-ptr-b-lbl').textContent = 'offset: ' + offset;
+  }
+}
+
+function flashAppend() {
+  const n = kafkaLog.length;
+  const start = Math.max(0, n - MAX_VISIBLE);
+  const i = (n - 1) - start;
+  const x = BLK_X0 + i * BLK_STEP;
+  const flashRect = document.getElementById('kfk-flash-rect');
+  if (flashRect) { flashRect.setAttribute('x', x); flashRect.setAttribute('width', BLK_W); }
+  const ind = document.getElementById('kfk-append-indicator');
+  ind.setAttribute('opacity','1');
+  setTimeout(() => ind.setAttribute('opacity','0'), 500);
+}
+
+function appendLogEntry(offset, evt) {
+  const viewer = document.getElementById('kfk-log-viewer');
+  const div = document.createElement('div');
+  div.className = 'log-entry new';
+  div.innerHTML =
+    `<span class="offset">[off:${String(offset).padStart(3,'0')}]</span>` +
+    `<span class="key">${evt.key}:</span>` +
+    `<span class="val">${evt.val}</span>`;
+  viewer.appendChild(div);
+  viewer.scrollTop = viewer.scrollHeight;
+}
+
+function consumeGroupA() {
+  if (offsetA >= kafkaLog.length) return;
+  offsetA++;
+  renderKafkaLog();
+  updateOffsetDisplay();
+  markLogEntry(offsetA - 1, '#2ecc71', 'GroupA');
+}
+
+function consumeGroupB() {
+  if (offsetB >= kafkaLog.length) return;
+  offsetB++;
+  renderKafkaLog();
+  updateOffsetDisplay();
+  markLogEntry(offsetB - 1, '#fd79a8', 'GroupB');
+}
+
+function markLogEntry(idx, color, label) {
+  const entries = document.querySelectorAll('#kfk-log-viewer .log-entry');
+  if (entries[idx]) {
+    const span = document.createElement('span');
+    span.style.color = color;
+    span.style.marginLeft = '8px';
+    span.textContent = '✓ ' + label;
+    entries[idx].appendChild(span);
+  }
+}
+
+function resetKafka() {
+  kafkaLog = []; offsetA = 0; offsetB = 0;
+  document.getElementById('kfk-log-g').innerHTML = '';
+  document.getElementById('kfk-log-viewer').innerHTML =
+    '<div style="color:rgba(127,179,245,0.4);font-size:.78rem;">// Partição 0 — aguardando eventos…</div>';
+  // Reset pointers to initial position
+  ['a','b'].forEach(grp => {
+    const lineEl = document.getElementById('kfk-ptr-' + grp + '-line');
+    if (lineEl) { lineEl.setAttribute('x1','45'); lineEl.setAttribute('x2','45'); }
+    const lbl = document.getElementById('kfk-ptr-' + grp + '-lbl');
+    if (lbl) lbl.textContent = 'offset: 0';
+  });
+  updateOffsetDisplay();
+}
+
+function updateOffsetDisplay() {
+  const tot = kafkaLog.length;
+  document.getElementById('off-a-val').textContent   = `offset: ${offsetA} / ${tot}`;
+  document.getElementById('off-b-val').textContent   = `offset: ${offsetB} / ${tot}`;
+  document.getElementById('kfk-total-val').textContent = tot + (tot === 1 ? ' evento' : ' eventos');
+}
+
+// Helper SVG element factory
+function mkSVG(tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+  return el;
+}
+
+/* ════════════════════════════════
+   EASING
+════════════════════════════════ */
+function easeInOut(t) {
+  return t < .5 ? 2*t*t : -1+(4-2*t)*t;
+}
+</script>
+</body>
+</html>

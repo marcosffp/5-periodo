@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APIs RESTful, OpenAPI e Contêineres — PUC Minas DAMD</title>
+<style>
+:root{
+    --puc-blue:#003554;--puc-red:#86001B;--puc-grey:#5D6770;
+    --puc-bg:#F4F4F4;--white:#FFFFFF;
+    --success:#27ae60;--warning:#f39c12;--info:#2980b9;--danger:#c0392b;
+    --c-rest:#117a65;--c-open:#1a5276;--c-dock:#0d3b6e;--c-k8s:#326ce5;
+    --code-bg:#0d1117;--code-bd:#30363d;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI','Open Sans',Arial,sans-serif;background:var(--puc-bg);color:#333;overflow:hidden;height:100vh;display:flex;flex-direction:column;}
+.slides-container{flex:1;position:relative;overflow:hidden;background:var(--white);}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;padding:88px 96px 76px 96px;display:flex;flex-direction:column;opacity:0;transform:translateX(100%);transition:all 0.48s cubic-bezier(0.25,1,0.5,1);background:var(--white);overflow-y:auto;overflow-x:hidden;}
+.slide::-webkit-scrollbar{width:5px;}
+.slide::-webkit-scrollbar-thumb{background:var(--puc-grey);border-radius:3px;}
+.slide.active{opacity:1;transform:translateX(0);z-index:2;}
+.slide.previous{opacity:0;transform:translateX(-100%);z-index:1;}
+.header-top{position:absolute;top:0;left:0;width:100%;height:70px;background:var(--puc-blue);display:flex;align-items:center;justify-content:space-between;padding:0 40px;z-index:101;box-shadow:0 2px 8px rgba(0,0,0,0.22);color:white;transition:transform 0.4s ease;}
+.header-logo{font-size:1.35rem;font-weight:700;}
+.header-title{font-weight:300;font-size:0.97rem;opacity:0.85;border-left:1px solid rgba(255,255,255,0.3);padding-left:16px;margin-left:16px;}
+.controls{height:54px;background:#1c1c1c;display:flex;justify-content:space-between;align-items:center;padding:0 40px;color:white;z-index:101;flex-shrink:0;transition:transform 0.4s ease;}
+body.ui-hidden .header-top{transform:translateY(-100%);}
+body.ui-hidden .controls{transform:translateY(100%);}
+.sensor-top{position:absolute;top:0;left:0;width:100%;height:80px;z-index:99;}
+.sensor-bottom{position:absolute;bottom:0;left:0;width:100%;height:63px;z-index:99;}
+h1{color:var(--puc-blue);font-size:2.55rem;font-weight:300;border-left:6px solid var(--puc-red);padding-left:26px;line-height:1.15;margin-bottom:18px;}
+h2{color:var(--puc-blue);font-size:1.82rem;font-weight:700;margin-bottom:22px;position:relative;padding-bottom:11px;}
+h2::after{content:"";position:absolute;bottom:0;left:0;width:50px;height:4px;background:var(--puc-red);}
+h3{color:var(--puc-grey);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;margin-bottom:8px;}
+h4{color:var(--puc-blue);font-size:1.03rem;font-weight:700;margin-bottom:6px;}
+p,li{font-size:1.05rem;line-height:1.58;color:#444;margin-bottom:7px;}
+li::before{content:"•";color:var(--puc-red);font-weight:bold;display:inline-block;width:1em;margin-left:-0.5em;}
+ul{list-style:none;padding-left:0.5em;}
+strong{color:var(--puc-blue);font-weight:700;}
+em{color:var(--puc-grey);font-style:italic;}
+code{font-family:'Consolas','JetBrains Mono',monospace;background:#f0f0f0;color:#c0392b;padding:1px 5px;border-radius:3px;font-size:0.86em;}
+.citation{font-size:0.76rem;color:var(--puc-grey);font-style:italic;margin-top:12px;display:block;border-top:1px solid #eee;padding-top:6px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:14px;}
+.card{background:#fff;border:1px solid #e0e0e0;border-left:5px solid var(--puc-blue);padding:14px;border-radius:6px;box-shadow:0 2px 7px rgba(0,0,0,0.05);transition:all 0.22s;}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,0.09);}
+.card.rest{border-left-color:var(--c-rest);background:#e8f8f5;}
+.card.open{border-left-color:var(--c-open);background:#eaf0f6;}
+.card.dock{border-left-color:var(--c-dock);background:#e8f0fb;}
+.card.k8s{border-left-color:var(--c-k8s);background:#eef2fd;}
+.card.warn{border-left-color:var(--warning);background:#fffbf0;}
+.card.green{border-left-color:var(--success);background:#f0fff4;}
+.card.red{border-left-color:var(--puc-red);background:#fff9f9;}
+.badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:0.76rem;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:white;margin-bottom:9px;}
+.b-rest{background:var(--c-rest);}
+.b-open{background:var(--c-open);}
+.b-dock{background:var(--c-dock);}
+.b-k8s{background:var(--c-k8s);}
+.m-map{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0;}
+.m-tile{padding:13px 8px;border-radius:8px;color:white;text-align:center;font-weight:700;font-size:0.84rem;cursor:default;}
+.m-tile small{display:block;font-weight:400;font-size:0.67rem;opacity:0.88;margin-top:3px;}
+.note-box{background:#e8f5e9;border-left:5px solid var(--success);padding:11px 15px;border-radius:4px;margin:8px 0;}
+.note-box h4{color:#1e7e34;}
+.warn-box{background:#fff8e1;border-left:5px solid var(--warning);padding:11px 15px;border-radius:4px;margin:8px 0;}
+.warn-box h4{color:#b7770d;}
+.tip-box{background:#e3f2fd;border-left:5px solid var(--info);padding:11px 15px;border-radius:4px;margin:8px 0;}
+.tip-box h4{color:#1565c0;}
+.danger-box{background:#fdedec;border-left:5px solid var(--puc-red);padding:11px 15px;border-radius:4px;margin:8px 0;}
+.danger-box h4{color:var(--puc-red);}
+.quote-box{background:#eef;border-left:5px solid var(--puc-blue);padding:13px 18px;font-style:italic;color:#555;border-radius:4px;margin:12px 0;}
+.cmp-table{width:100%;border-collapse:collapse;margin:8px 0;background:white;box-shadow:0 2px 7px rgba(0,0,0,0.06);font-size:0.84rem;}
+.cmp-table th{background:var(--puc-blue);color:white;padding:8px 11px;text-align:left;font-weight:600;}
+.cmp-table td{padding:7px 11px;border-bottom:1px solid #e8e8e8;}
+.cmp-table tr:hover td{background:#f8f9fa;}
+.cmp-table tr:last-child td{border-bottom:none;}
+.cmp-table td:first-child{font-weight:600;}
+.cell-good{color:#1e7e34;font-weight:700;}
+.cell-mid{color:#b7770d;font-weight:700;}
+.cell-bad{color:#c0392b;font-weight:700;}
+/* Checkpoint */
+.checkpoint{background:linear-gradient(135deg,#003554,#005082);color:white;padding:20px;border-radius:11px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,0.18);}
+.checkpoint h3{color:white;font-size:1.15rem;margin-bottom:10px;text-transform:none;letter-spacing:0;}
+.cp-q{background:rgba(255,255,255,0.12);padding:11px;border-radius:7px;margin-bottom:9px;}
+.cp-q p{color:white;font-size:0.96rem;}
+.cp-options{display:grid;gap:6px;margin-top:7px;}
+.cp-option{background:rgba(255,255,255,0.13);padding:8px 13px;border-radius:5px;cursor:pointer;transition:all 0.18s;border:2px solid transparent;color:white;font-size:0.91rem;}
+.cp-option:hover{background:rgba(255,255,255,0.23);transform:translateX(3px);}
+.cp-option.selected{border-color:#ffd700;background:rgba(255,215,0,0.2);}
+.cp-option.correct{border-color:#2ecc71;background:rgba(46,204,113,0.2);}
+.cp-option.wrong{border-color:#e74c3c;background:rgba(231,76,60,0.2);}
+.cp-feedback{display:none;background:rgba(255,255,255,0.13);padding:11px;border-radius:6px;margin-top:7px;color:white;font-size:0.9rem;}
+.cp-feedback.show{display:block;}
+.cp-btn{background:white;color:var(--puc-blue);border:none;padding:7px 18px;border-radius:5px;font-weight:700;cursor:pointer;margin-top:9px;transition:all 0.18s;font-size:0.93rem;}
+.cp-btn:hover{transform:scale(1.04);}
+.cp-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+/* Código */
+.code-block{background:var(--code-bg);border:1px solid var(--code-bd);border-radius:7px;padding:14px 18px;margin:10px 0;font-family:'Consolas','JetBrains Mono',monospace;font-size:0.81rem;line-height:1.6;color:#e6edf3;overflow-x:auto;}
+.code-block .kw{color:#ff7b72;}
+.code-block .str{color:#a5d6ff;}
+.code-block .cm{color:#8b949e;font-style:italic;}
+.code-block .num{color:#79c0ff;}
+.code-block .prop{color:#ffa657;}
+.code-block .val{color:#a5d6ff;}
+/* Swagger UI simulado */
+.swagger-ui{background:#fafafa;border:1px solid #ddd;border-radius:8px;overflow:hidden;margin:10px 0;}
+.swagger-header{background:#89bf04;padding:9px 16px;color:white;font-weight:700;font-size:0.97rem;display:flex;align-items:center;gap:10px;}
+.swagger-path{border-bottom:1px solid #ddd;}
+.swagger-path-header{display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;background:#fff;transition:background 0.18s;}
+.swagger-path-header:hover{background:#f5f5f5;}
+.method-badge{padding:3px 9px;border-radius:4px;font-size:0.74rem;font-weight:700;color:white;min-width:56px;text-align:center;}
+.method-get{background:#61affe;}
+.method-post{background:#49cc90;}
+.method-put{background:#fca130;}
+.method-delete{background:#f93e3e;}
+.path-url{font-family:'Consolas','JetBrains Mono',monospace;font-size:0.86rem;color:#3b4151;}
+.path-summary{font-size:0.83rem;color:#666;margin-left:auto;}
+.swagger-body{display:none;padding:12px 16px;background:#f9f9f9;border-top:1px solid #eee;}
+.swagger-body.open{display:block;}
+.swagger-body p{font-size:0.84rem;color:#555;margin-bottom:5px;}
+.swagger-tag{font-size:0.71rem;font-weight:700;background:#e8f5e9;color:#2e7d32;padding:2px 7px;border-radius:10px;}
+/* Stack visual */
+.stack{display:flex;flex-direction:column;gap:4px;margin:10px 0;}
+.stack-layer{padding:9px 14px;border-radius:6px;color:white;font-size:0.84rem;font-weight:600;text-align:center;}
+.stack-layer small{font-weight:400;opacity:0.88;font-size:0.73rem;display:block;margin-top:2px;}
+/* Flow */
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0;}
+.flow-node{padding:9px 12px;border-radius:7px;color:white;font-size:0.83rem;font-weight:700;text-align:center;}
+.flow-arrow{color:var(--puc-grey);font-size:1.3rem;}
+/* HTTP status badges */
+.status-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0;}
+.status-card{padding:10px 8px;border-radius:7px;text-align:center;color:white;}
+.status-card .code{font-size:1.3rem;font-weight:700;font-family:'Consolas',monospace;}
+.status-card .name{font-size:0.68rem;font-weight:600;margin-top:2px;opacity:0.92;}
+.status-card .desc{font-size:0.65rem;opacity:0.82;margin-top:3px;}
+.s1xx{background:#6c757d;}
+.s2xx{background:#28a745;}
+.s3xx{background:#17a2b8;}
+.s4xx{background:#fd7e14;}
+.s5xx{background:#dc3545;}
+/* OAuth flow */
+.oauth-flow{display:flex;flex-direction:column;gap:5px;margin:10px 0;}
+.oauth-step{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:5px;background:#f8f9fa;border-left:4px solid var(--puc-blue);}
+.oauth-step-num{background:var(--puc-blue);color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+.oauth-step p{font-size:0.88rem;margin:0;}
+/* Progress */
+.progress-bar{flex-grow:1;height:4px;background:rgba(255,255,255,0.18);margin:0 26px;border-radius:2px;position:relative;}
+.progress-fill{position:absolute;left:0;top:0;height:100%;background:var(--puc-red);width:0%;transition:width 0.3s;}
+.nav-btn{background:transparent;border:1px solid rgba(255,255,255,0.32);color:white;padding:6px 16px;cursor:pointer;border-radius:4px;transition:all 0.18s;font-size:0.81rem;text-transform:uppercase;letter-spacing:1px;}
+.nav-btn:hover{background:var(--puc-red);border-color:var(--puc-red);}
+.footer-info{font-size:0.72rem;opacity:0.58;text-transform:uppercase;letter-spacing:1px;min-width:110px;}
+.scroll-indicator{position:fixed;bottom:63px;right:26px;background:var(--puc-red);color:white;padding:6px 12px;border-radius:18px;font-size:0.8rem;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100;}
+.scroll-indicator.show{opacity:0.88;}
+@media(max-width:900px){
+    .slide{padding:75px 24px 50px 24px;}
+    h1{font-size:1.85rem;}h2{font-size:1.4rem;}
+    .grid-2,.grid-3,.m-map,.status-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="sensor-top" id="sensor-top"></div>
+<div class="sensor-bottom" id="sensor-bottom"></div>
+<div class="scroll-indicator" id="scrollIndicator">&#8595; Role para ver mais &#8595;</div>
+<div class="header-top" id="header-ui">
+    <div class="header-logo">PUC Minas <span class="header-title">ICEI &mdash; Aplicações Móveis e Distribuídas</span></div>
+    <div style="font-size:0.82rem;opacity:0.78;">Aula 12</div>
+</div>
+
+<div class="slides-container">
+
+<!-- ══ 01 CAPA ══════════════════════════════════════════════ -->
+<div class="slide active">
+    <h3>Engenharia de Software &middot; 2026/1</h3>
+    <h1>APIs RESTful, OpenAPI<br>e Contêineres<br>
+        <span style="font-size:1.25rem;color:var(--puc-red);">Fielding &middot; OAuth2 &middot; Swagger &middot; Docker &middot; Kubernetes</span>
+    </h1>
+    <div class="m-map" style="margin-top:16px;">
+        <div class="m-tile" style="background:var(--c-rest);">I. REST<br>Fundamentos <small>Slides 2&ndash;8</small></div>
+        <div class="m-tile" style="background:var(--c-open);">II. OpenAPI<br>+ Swagger UI <small>Slides 9&ndash;11</small></div>
+        <div class="m-tile" style="background:var(--c-dock);">III. Docker<br>+ Compose <small>Slides 12&ndash;13</small></div>
+        <div class="m-tile" style="background:var(--c-k8s);">IV. Kubernetes<br>Conceitos <small>Slides 14&ndash;16</small></div>
+    </div>
+    <div class="tip-box" style="margin-top:14px;">
+        <h4>&#127981; Roteiro da aula</h4>
+        <p style="font-size:0.95rem;">REST define <em>como</em> uma API deve se comportar. OpenAPI define <em>como</em> documentá-la. Docker e Kubernetes definem <em>como</em> operá-la em produção com confiança. Os três temas são independentes, mas se completam na prática de qualquer time de desenvolvimento distribuído.</p>
+    </div>
+</div>
+
+<!-- ══ 02 REST — O PROBLEMA ══════════════════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-rest">I. REST</span> O problema que REST resolve</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Integração antes de REST</h3>
+            <div class="card warn" style="margin-bottom:10px;">
+                <h4>Anos 1990&ndash;2000: Web Services SOAP</h4>
+                <p style="font-size:0.88rem;">Cada sistema definia seus próprios formatos de mensagem e protocolos. Integrar dois sistemas exigia negociação de WSDL, schemas XML e stubs gerados. Uma operação simples resultava em envelopes SOAP com dezenas de linhas e qualquer mudança no contrato quebrava todos os clientes.</p>
+            </div>
+            <div class="danger-box">
+                <h4>O problema central</h4>
+                <p style="font-size:0.88rem;">Sem padrão, cada par de sistemas que precisava se comunicar era um projeto de integração separado. O custo de escalar o número de integrações crescia quadraticamente com o número de sistemas.</p>
+            </div>
+        </div>
+        <div>
+            <h3>A proposta de Fielding (2000)</h3>
+            <div class="quote-box">
+                <p style="font-size:0.93rem;">"REST is intended to evoke an image of how a well-designed Web application behaves: a network of web pages where the user progresses through an application by selecting links."</p>
+                <p style="font-size:0.76rem;margin-top:7px;color:var(--puc-grey);">FIELDING, R. T. Architectural Styles and the Design of Network-based Software Architectures. UC Irvine, 2000, Cap. 5.</p>
+            </div>
+            <div class="note-box" style="margin-top:10px;">
+                <h4>A ideia central</h4>
+                <p style="font-size:0.88rem;">Usar o próprio HTTP como linguagem universal de integração. Recursos identificados por URIs, operações pelos verbos HTTP, representações em JSON ou XML. A Web já funcionava assim, ou seja, REST formalizou os princípios como um estilo arquitetural.</p>
+            </div>
+            <div class="tip-box" style="margin-top:8px;">
+                <h4>REST não é um padrão, é um estilo arquitetural</h4>
+                <p style="font-size:0.88rem;">Não há organização que certifique uma API como "REST". REST é um conjunto de constraints que, quando satisfeitos, produzem as propriedades desejadas de escalabilidade, visibilidade e modificabilidade.</p>
+            </div>
+        </div>
+    </div>
+    <span class="citation">FIELDING, R. T. Architectural Styles and the Design of Network-based Software Architectures. Dissertação de Doutorado. University of California, Irvine, 2000. Disponível em: https://ics.uci.edu/~fielding/pubs/dissertation/top.htm</span>
+</div>
+
+<!-- ══ 03 REST — 6 CONSTRAINTS ══════════════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-rest">I. REST</span> Os 6 constraints arquiteturais de Fielding</h2>
+    <div class="grid-2" style="margin-top:6px;">
+        <div>
+            <div class="card rest" style="margin-bottom:9px;">
+                <h4>1. Client&ndash;Server</h4>
+                <p style="font-size:0.86rem;">Separação de responsabilidades: o cliente gerencia a interface; o servidor gerencia dados e lógica de negócio. Cada lado pode evoluir independentemente. O app mobile não precisa saber nada sobre o banco de dados do servidor.</p>
+            </div>
+            <div class="card rest" style="margin-bottom:9px;">
+                <h4>2. Stateless</h4>
+                <p style="font-size:0.86rem;">Cada requisição deve conter <strong>todas</strong> as informações necessárias para ser processada. O servidor não mantém estado de sessão entre requisições. Consequência direta: qualquer instância do servidor pode atender qualquer requisição, tornando o escalonamento horizontal trivial.</p>
+            </div>
+            <div class="card rest" style="margin-bottom:9px;">
+                <h4>3. Cache</h4>
+                <p style="font-size:0.86rem;">Respostas devem declarar explicitamente se são cacheáveis (<code>Cache-Control</code>, <code>ETag</code>, <code>Last-Modified</code>). Um cliente ou intermediário que cacheia respostas reduz a latência e a carga sobre o servidor.</p>
+            </div>
+        </div>
+        <div>
+            <div class="card rest" style="margin-bottom:9px;">
+                <h4>4. Uniform Interface <em>(o mais importante)</em></h4>
+                <p style="font-size:0.86rem;">Quatro sub-constraints: <strong>(a)</strong> identificação de recursos por URI; <strong>(b)</strong> manipulação via representações; <strong>(c)</strong> mensagens auto-descritivas (Content-Type, status code); <strong>(d)</strong> HATEOAS — hipermídia como motor do estado da aplicação.</p>
+            </div>
+            <div class="card rest" style="margin-bottom:9px;">
+                <h4>5. Layered System</h4>
+                <p style="font-size:0.86rem;">O cliente não sabe se está se comunicando com o servidor final ou com um intermediário (API Gateway, proxy reverso, CDN, load balancer). Cada camada vê apenas a camada imediatamente adjacente.</p>
+            </div>
+            <div class="card rest" style="margin-bottom:9px;">
+                <h4>6. Code-on-Demand <em>(opcional)</em></h4>
+                <p style="font-size:0.86rem;">O servidor pode estender a funcionalidade do cliente enviando código executável (ex: JavaScript). O único constraint opcional. Usado em aplicações web; raro em APIs de sistemas distribuídos.</p>
+            </div>
+        </div>
+    </div>
+    <span class="citation">FIELDING, R. T. Architectural Styles and the Design of Network-based Software Architectures. UC Irvine, 2000, Cap. 5.1–5.3. | RICHARDSON, L.; RUBY, S. RESTful Web Services. O'Reilly, 2007.</span>
+</div>
+
+<!-- ══ 04 REST — VERBOS, RECURSOS, VERSIONAMENTO ════════════ -->
+<div class="slide">
+    <h2><span class="badge b-rest">I. REST</span> Design de recursos, verbos HTTP e versionamento</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Modelando recursos</h3>
+            <table class="cmp-table">
+                <thead><tr><th>Ação</th><th>URI</th><th>Verbo</th><th>Resposta</th></tr></thead>
+                <tbody>
+                    <tr><td>Listar</td><td><code>/v1/orders</code></td><td style="color:#61affe;font-weight:700;">GET</td><td>200 + array</td></tr>
+                    <tr><td>Criar</td><td><code>/v1/orders</code></td><td style="color:#49cc90;font-weight:700;">POST</td><td>201 + Location</td></tr>
+                    <tr><td>Buscar</td><td><code>/v1/orders/{id}</code></td><td style="color:#61affe;font-weight:700;">GET</td><td>200 ou 404</td></tr>
+                    <tr><td>Substituir</td><td><code>/v1/orders/{id}</code></td><td style="color:#fca130;font-weight:700;">PUT</td><td>200 ou 204</td></tr>
+                    <tr><td>Atualizar</td><td><code>/v1/orders/{id}</code></td><td style="color:#a855f7;font-weight:700;">PATCH</td><td>200 ou 204</td></tr>
+                    <tr><td>Remover</td><td><code>/v1/orders/{id}</code></td><td style="color:#f93e3e;font-weight:700;">DELETE</td><td>204</td></tr>
+                    <tr><td>Sub-recurso</td><td><code>/v1/orders/{id}/items</code></td><td style="color:#61affe;font-weight:700;">GET</td><td>200 + array</td></tr>
+                </tbody>
+            </table>
+            <div class="warn-box" style="margin-top:8px;">
+                <h4>URIs identificam recursos, não ações</h4>
+                <p style="font-size:0.86rem;"><code>/cancelOrder/123</code> viola o Uniform Interface. O correto é <code>POST /orders/123/cancellations</code> — a ação é o verbo, o recurso é o substantivo.</p>
+            </div>
+        </div>
+        <div>
+            <h3>Estratégias de versionamento</h3>
+            <div class="card open" style="margin-bottom:8px;">
+                <h4>URI Versioning <em>(mais adotado)</em></h4>
+                <code>/v1/orders</code> &nbsp;&#8594;&nbsp; <code>/v2/orders</code>
+                <p style="font-size:0.85rem;margin-top:5px;">Visível e fácil de testar no browser. Adotado por Stripe, GitHub, Twitter/X. Desvantagem: viola o princípio REST de que URIs identificam recursos (a versão é um detalhe de implementação, não parte do recurso).</p>
+            </div>
+            <div class="card open" style="margin-bottom:8px;">
+                <h4>Header Versioning</h4>
+                <code>Accept: application/vnd.app.v2+json</code>
+                <p style="font-size:0.85rem;margin-top:5px;">Mais fiel ao REST. A URI do recurso não muda. Mais difícil de testar e de cachear em proxies. Adotado pelo GitHub API v3 e Microsoft Graph.</p>
+            </div>
+            <div class="note-box">
+                <h4>Regra prática</h4>
+                <p style="font-size:0.86rem;">Versione desde a primeira release pública. Nunca quebre contratos existentes sem um período de transição explícito e documentado.</p>
+            </div>
+        </div>
+    </div>
+    <span class="citation">MASSE, M. REST API Design Rulebook. O'Reilly, 2011. | RICHARDSON, L.; AMUNDSEN, M.; RUBY, S. RESTful Web APIs. O'Reilly, 2013.</span>
+</div>
+
+<!-- ══ 05 REST — IDEMPOTÊNCIA E SEGURANÇA ═══════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-rest">I. REST</span> Idempotência e segurança dos verbos HTTP</h2>
+    <p style="margin-bottom:12px;">Dois conceitos fundamentais que determinam como clientes e intermediários podem tratar requisições com segurança.</p>
+    <div class="grid-2" style="margin-bottom:12px;">
+        <div class="card green">
+            <h4>&#9989; Segurança <em>(Safe)</em></h4>
+            <p style="font-size:0.88rem;">Um método é <strong>seguro</strong> se não altera o estado do servidor. O cliente pode chamá-lo quantas vezes quiser sem efeitos colaterais. Segurança não implica que a operação seja livre de efeitos, logs e métricas podem ser registrados mas o <em>estado dos recursos</em> não muda.</p>
+            <p style="font-size:0.84rem;margin-top:6px;color:var(--c-rest);font-weight:600;">Métodos seguros: GET, HEAD, OPTIONS</p>
+        </div>
+        <div class="card open">
+            <h4>&#128260; Idempotência</h4>
+            <p style="font-size:0.88rem;">Um método é <strong>idempotente</strong> se chamar N vezes produz o mesmo efeito que chamar uma vez. A propriedade é sobre o <em>estado resultante</em>, não sobre a resposta HTTP que pode variar (ex: primeiro DELETE retorna 204, o segundo retorna 404).</p>
+            <p style="font-size:0.84rem;margin-top:6px;color:var(--c-open);font-weight:600;">Métodos idempotentes: GET, HEAD, PUT, DELETE, OPTIONS</p>
+        </div>
+    </div>
+    <table class="cmp-table">
+        <thead><tr><th>Método</th><th>Seguro?</th><th>Idempotente?</th><th>Corpo na req?</th><th>Uso típico</th><th>Consequência de repetir</th></tr></thead>
+        <tbody>
+            <tr><td>GET</td><td class="cell-good">Sim</td><td class="cell-good">Sim</td><td>Não</td><td>Leitura de recurso</td><td>Idêntico (seguro para retry automático)</td></tr>
+            <tr><td>HEAD</td><td class="cell-good">Sim</td><td class="cell-good">Sim</td><td>Não</td><td>Verificar existência / metadados</td><td>Idêntico (sem corpo na resposta)</td></tr>
+            <tr><td>OPTIONS</td><td class="cell-good">Sim</td><td class="cell-good">Sim</td><td>Não</td><td>Listar métodos permitidos (CORS)</td><td>Idêntico</td></tr>
+            <tr><td>PUT</td><td class="cell-bad">Não</td><td class="cell-good">Sim</td><td>Sim</td><td>Substituição completa do recurso</td><td>Estado final idêntico (seguro para retry)</td></tr>
+            <tr><td>DELETE</td><td class="cell-bad">Não</td><td class="cell-good">Sim</td><td>Raramente</td><td>Remoção de recurso</td><td>Primeiro: 204. Seguintes: 404. Estado idêntico.</td></tr>
+            <tr><td>PATCH</td><td class="cell-bad">Não</td><td class="cell-mid">Depende</td><td>Sim</td><td>Atualização parcial</td><td>Depende do payload (pode ou não ser idempotente)</td></tr>
+            <tr><td style="color:#c0392b;font-weight:700;">POST</td><td class="cell-bad">Não</td><td class="cell-bad">Não</td><td>Sim</td><td>Criação de recurso</td><td>Cria um novo recurso a cada chamada (nunca retry automático)</td></tr>
+        </tbody>
+    </table>
+    <div class="warn-box" style="margin-top:8px;">
+        <h4>Por que isso importa na prática</h4>
+        <p style="font-size:0.87rem;">Um cliente que perde a resposta de um POST (timeout de rede) <strong>não pode</strong> repetir a requisição com segurança, pois a repetição pode criar um pedido duplicado. Para operações críticas não idempotentes, use chaves de idempotência (<code>Idempotency-Key</code> header, adotado pelo Stripe) que permitem ao servidor detectar e ignorar réplicas.</p>
+    </div>
+    <span class="citation">RFC 9110 — HTTP Semantics. IETF, 2022. Seções 9.2.1 (Safe) e 9.2.2 (Idempotent). DOI: 10.17487/RFC9110. | Stripe Idempotency: https://stripe.com/docs/api/idempotent_requests</span>
+</div>
+
+<!-- ══ 06 REST — CÓDIGOS DE STATUS HTTP ═════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-rest">I. REST</span> Códigos de status HTTP — semântica e uso correto</h2>
+    <p style="margin-bottom:10px;">Códigos de status são parte do contrato Uniform Interface. Usá-los incorretamente quebra clientes, dificulta depuração e viola o constraint de mensagens auto-descritivas.</p>
+    <div class="status-grid">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <div class="status-card s2xx"><div class="code">2xx</div><div class="name">SUCESSO</div></div>
+            <div class="status-card s2xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>200 OK</strong><br>GET, PUT, PATCH bem-sucedidos com corpo de resposta</div>
+            <div class="status-card s2xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>201 Created</strong><br>POST que criou recurso. Incluir header <code>Location</code></div>
+            <div class="status-card s2xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>204 No Content</strong><br>DELETE ou PUT/PATCH sem corpo de resposta</div>
+            <div class="status-card s2xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>202 Accepted</strong><br>Operação aceita mas processada de forma assíncrona</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <div class="status-card s3xx"><div class="code">3xx</div><div class="name">REDIRECIONAMENTO</div></div>
+            <div class="status-card s3xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>301 Moved Permanently</strong><br>Recurso mudou de URI definitivamente</div>
+            <div class="status-card s3xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>304 Not Modified</strong><br>Recurso não mudou desde o cache do cliente (<code>ETag</code>)</div>
+            <div class="status-card s3xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>307 Temporary Redirect</strong><br>Redirecionamento temporário preservando o método HTTP</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <div class="status-card s4xx"><div class="code">4xx</div><div class="name">ERRO DO CLIENTE</div></div>
+            <div class="status-card s4xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>400 Bad Request</strong><br>Payload malformado ou parâmetros inválidos</div>
+            <div class="status-card s4xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>401 Unauthorized</strong><br>Sem autenticação ou token inválido</div>
+            <div class="status-card s4xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>403 Forbidden</strong><br>Autenticado mas sem permissão para este recurso</div>
+            <div class="status-card s4xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>404 Not Found</strong><br>Recurso não existe. Também usado para esconder 403</div>
+            <div class="status-card s4xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>409 Conflict</strong><br>Conflito de estado (ex: e-mail já cadastrado)</div>
+            <div class="status-card s4xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>422 Unprocessable</strong><br>Payload bem formado mas semanticamente inválido</div>
+            <div class="status-card s4xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>429 Too Many Requests</strong><br>Rate limiting. Incluir <code>Retry-After</code></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+            <div class="status-card s5xx"><div class="code">5xx</div><div class="name">ERRO DO SERVIDOR</div></div>
+            <div class="status-card s5xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>500 Internal Server Error</strong><br>Falha genérica. Nunca expor stack trace</div>
+            <div class="status-card s5xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>502 Bad Gateway</strong><br>Intermediário recebeu resposta inválida do upstream</div>
+            <div class="status-card s5xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>503 Service Unavailable</strong><br>Servidor sobrecarregado ou em manutenção</div>
+            <div class="status-card s5xx" style="font-size:0.75rem;padding:8px;border-radius:5px;"><strong>504 Gateway Timeout</strong><br>Intermediário não recebeu resposta do upstream a tempo</div>
+        </div>
+    </div>
+    <div class="danger-box" style="margin-top:8px;">
+        <h4>Anti-padrão frequente: retornar 200 com erro no corpo</h4>
+        <p style="font-size:0.87rem;"><code>HTTP 200 OK</code> com <code>{"status": "error", "message": "not found"}</code> quebra o contrato REST, impede que API Gateways e clientes tratem erros automaticamente e viola as mensagens auto-descritivas do Uniform Interface.</p>
+    </div>
+    <span class="citation">RFC 9110 — HTTP Semantics. IETF, 2022. Seção 15. DOI: 10.17487/RFC9110. | RFC 9457 — Problem Details for HTTP APIs. IETF, 2023. DOI: 10.17487/RFC9457.</span>
+</div>
+
+<!-- ══ 07 REST — HATEOAS ═════════════════════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-rest">I. REST</span> HATEOAS — Hipermídia como motor do estado</h2>
+    <div class="grid-2">
+        <div>
+            <h3>O sub-constraint mais ignorado</h3>
+            <p style="font-size:0.9rem;">HATEOAS (Hypermedia As The Engine Of Application State) é o quarto sub-constraint do Uniform Interface. A ideia: assim como uma página web guia o usuário por links, uma API REST deve guiar o cliente pelas ações disponíveis através de links na própria resposta.</p>
+            <div class="warn-box" style="margin-top:8px;">
+                <h4>O problema sem HATEOAS</h4>
+                <p style="font-size:0.86rem;">O cliente precisa conhecer antecipadamente todas as URIs e quando cada ação está disponível. Qualquer mudança no servidor (URI, transição de estado) exige atualização coordenada do cliente. O servidor e o cliente ficam acoplados.</p>
+            </div>
+            <div class="note-box" style="margin-top:8px;">
+                <h4>Com HATEOAS</h4>
+                <p style="font-size:0.86rem;">O cliente começa de um único ponto de entrada e descobre as ações disponíveis através das respostas. O servidor controla o fluxo. URIs podem mudar sem quebrar clientes que seguem links.</p>
+            </div>
+        </div>
+        <div>
+            <h3>Exemplo: recurso Pedido com HATEOAS</h3>
+            <div class="code-block" style="font-size:0.79rem;">
+<span class="cm">// GET /v1/orders/42 — pedido aguardando pagamento</span>
+<pre>
+{
+  <span class="prop">"id"</span>: <span class="str">"42"</span>,
+  <span class="prop">"status"</span>: <span class="str">"pending_payment"</span>,
+  <span class="prop">"total"</span>: <span class="num">149.90</span>,
+  <span class="prop">"_links"</span>: {
+    <span class="prop">"self"</span>: {
+      <span class="prop">"href"</span>: <span class="str">"/v1/orders/42"</span>,
+      <span class="prop">"method"</span>: <span class="str">"GET"</span>
+    },
+    <span class="prop">"pay"</span>: {
+      <span class="prop">"href"</span>: <span class="str">"/v1/orders/42/payments"</span>,
+      <span class="prop">"method"</span>: <span class="str">"POST"</span>
+    },
+    <span class="prop">"cancel"</span>: {
+      <span class="prop">"href"</span>: <span class="str">"/v1/orders/42/cancellations"</span>,
+      <span class="prop">"method"</span>: <span class="str">"POST"</span>
+    }
+  }
+}
+<span class="cm">// GET /v1/orders/42 — após pagamento confirmado</span>
+{
+  <span class="prop">"status"</span>: <span class="str">"paid"</span>,
+  <span class="prop">"_links"</span>: {
+    <span class="prop">"self"</span>: { <span class="prop">"href"</span>: <span class="str">"/v1/orders/42"</span> },
+    <span class="prop">"track"</span>: {
+      <span class="prop">"href"</span>: <span class="str">"/v1/orders/42/tracking"</span>,
+      <span class="prop">"method"</span>: <span class="str">"GET"</span>
+    }
+    <span class="cm">// "cancel" e "pay" não aparecem mais</span>
+  }
+}
+</pre>
+            </div>
+            <div class="tip-box" style="margin-top:6px;">
+                <h4>HAL e JSON:API</h4>
+                <p style="font-size:0.84rem;">Dois formatos populares que padronizam como expressar HATEOAS em JSON: HAL (Hypertext Application Language) usa <code>_links</code>; JSON:API usa <code>links</code> e <code>relationships</code>.</p>
+            </div>
+        </div>
+    </div>
+    <span class="citation">FIELDING, R. T. REST APIs must be hypertext-driven. Blog pessoal, 2008. Disponível em: https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven | HAL Specification: https://stateless.group/hal_specification.html</span>
+</div>
+
+<!-- ══ 08 REST — AUTENTICAÇÃO ════════════════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-rest">I. REST</span> Autenticação em APIs REST — Bearer Token e OAuth2</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Bearer Token (JWT)</h3>
+            <p style="font-size:0.88rem;">O mecanismo mais comum em APIs REST. O cliente envia um token opaco ou estruturado (JWT) no header de cada requisição. O servidor valida o token sem consultar banco de dados (o que respeita o constraint Stateless).</p>
+            <div class="code-block" style="font-size:0.79rem;margin:8px 0;">
+<pre>
+<span class="cm"># Formato do header em toda requisição autenticada</span>
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9...
+
+<span class="cm"># Estrutura do JWT (3 partes separadas por ponto)</span>
+<span class="prop">Header</span>:  { <span class="str">"alg"</span>: <span class="str">"RS256"</span>, <span class="str">"typ"</span>: <span class="str">"JWT"</span> }
+<span class="prop">Payload</span>: {
+  <span class="str">"sub"</span>: <span class="str">"user:u42"</span>,
+  <span class="str">"roles"</span>: [<span class="str">"admin"</span>],
+  <span class="str">"exp"</span>: <span class="num">1750000000</span>  <span class="cm"># Unix timestamp</span>
+}
+<span class="prop">Signature</span>: RSASHA256(base64(header) + <span class="str">"."</span>
+              + base64(payload), privateKey)
+</pre>
+            </div>
+            <div class="warn-box">
+                <h4>JWT não é criptografia, é assinatura</h4>
+                <p style="font-size:0.85rem;">O payload é apenas codificado em Base64, não cifrado. <strong>Nunca</strong> armazene dados sensíveis (senhas, cartões) no JWT. Use JWE se precisar de confidencialidade.</p>
+            </div>
+        </div>
+        <div>
+            <h3>OAuth 2.0 — fluxos principais</h3>
+            <div class="tip-box" style="margin-bottom:8px;">
+                <h4>OAuth2 é um framework de autorização</h4>
+                <p style="font-size:0.85rem;">Permite que um sistema acesse recursos em nome de um usuário <strong>sem receber suas credenciais</strong>. Define quatro fluxos para diferentes cenários.</p>
+            </div>
+            <h4 style="margin-bottom:6px;">Client Credentials (M2M)</h4>
+            <div class="oauth-flow">
+                <div class="oauth-step"><div class="oauth-step-num">1</div><p>Serviço A envia <code>client_id</code> + <code>client_secret</code> para o Authorization Server</p></div>
+                <div class="oauth-step"><div class="oauth-step-num">2</div><p>Authorization Server retorna um <code>access_token</code> (JWT) com escopo definido</p></div>
+                <div class="oauth-step"><div class="oauth-step-num">3</div><p>Serviço A usa o token como Bearer em chamadas ao Serviço B</p></div>
+            </div>
+            <h4 style="margin:10px 0 6px;">Authorization Code (usuário final)</h4>
+            <div class="oauth-flow">
+                <div class="oauth-step"><div class="oauth-step-num">1</div><p>App redireciona usuário ao Authorization Server (ex: "Login com Google")</p></div>
+                <div class="oauth-step"><div class="oauth-step-num">2</div><p>Usuário autentica e consente. Authorization Server retorna um <code>code</code></p></div>
+                <div class="oauth-step"><div class="oauth-step-num">3</div><p>App troca o <code>code</code> por <code>access_token</code> + <code>refresh_token</code> em chamada server-to-server</p></div>
+                <div class="oauth-step"><div class="oauth-step-num">4</div><p>App usa <code>access_token</code> como Bearer. Quando expira, usa <code>refresh_token</code> para renovar sem novo login</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="citation">RFC 6749 — The OAuth 2.0 Authorization Framework. IETF, 2012. DOI: 10.17487/RFC6749. | RFC 7519 — JSON Web Token (JWT). IETF, 2015. DOI: 10.17487/RFC7519. | RFC 7617 — The 'Basic' HTTP Authentication Scheme. IETF, 2015.</span>
+</div>
+
+<!-- ══ 09 OPENAPI — DOCUMENTO E SCHEMAS ═════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-open">II. OpenAPI</span> Documento OpenAPI 3.1 — estrutura e schemas</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Por que documentação como código</h3>
+            <div class="card warn" style="margin-bottom:8px;">
+                <h4>Sem contrato formal</h4>
+                <p style="font-size:0.86rem;">Dois times integram sistemas via e-mail e planilhas. Um campo muda de tipo. O consumer quebra em produção. A investigação leva horas. Com um documento OpenAPI versionado no repositório, a mudança é visível em PR antes de ir ao ar.</p>
+            </div>
+            <div class="note-box" style="margin-bottom:8px;">
+                <h4>OpenAPI Specification (OAS)</h4>
+                <p style="font-size:0.86rem;">Formato YAML/JSON que descreve completamente uma API REST. Evolução do Swagger Specification, hoje mantido pela Linux Foundation. A versão 3.1 alinha os schemas com o JSON Schema 2020-12.</p>
+            </div>
+            <h3 style="margin-top:12px;">Schemas com composição</h3>
+            <div class="code-block" style="font-size:0.77rem;">
+<pre>
+<span class="prop">components</span>:
+  <span class="prop">schemas</span>:
+    <span class="prop">BaseOrder</span>:
+      <span class="prop">properties</span>:
+        <span class="prop">id</span>: {<span class="prop">type</span>: <span class="str">string</span>, <span class="prop">format</span>: <span class="str">uuid</span>}
+        <span class="prop">created_at</span>: {<span class="prop">type</span>: <span class="str">string</span>,
+                       <span class="prop">format</span>: <span class="str">date-time</span>}
+
+    <span class="prop">Order</span>:
+      <span class="prop">allOf</span>:          <span class="cm"># herança de schema</span>
+        - <span class="prop">$ref</span>: <span class="str">'#/components/schemas/BaseOrder'</span>
+        - <span class="prop">properties</span>:
+            <span class="prop">status</span>:
+              <span class="prop">type</span>: <span class="str">string</span>
+              <span class="prop">enum</span>: [<span class="str">pending</span>, <span class="str">paid</span>, <span class="str">shipped</span>]
+            <span class="prop">total</span>: {<span class="prop">type</span>: <span class="str">number</span>}
+
+    <span class="prop">PaymentMethod</span>:
+      <span class="prop">oneOf</span>:          <span class="cm"># polimorfismo</span>
+        - <span class="prop">$ref</span>: <span class="str">'#/components/schemas/CreditCard'</span>
+        - <span class="prop">$ref</span>: <span class="str">'#/components/schemas/Pix'</span>
+      <span class="prop">discriminator</span>:
+        <span class="prop">propertyName</span>: <span class="str">type</span>
+</pre>
+            </div>
+        </div>
+        <div>
+            <h3>Segurança no documento (securitySchemes)</h3>
+            <div class="code-block" style="font-size:0.77rem;">
+<pre>
+<span class="prop">components</span>:
+  <span class="prop">securitySchemes</span>:
+    <span class="prop">BearerAuth</span>:
+      <span class="prop">type</span>: <span class="str">http</span>
+      <span class="prop">scheme</span>: <span class="str">bearer</span>
+      <span class="prop">bearerFormat</span>: <span class="str">JWT</span>
+
+    <span class="prop">OAuth2</span>:
+      <span class="prop">type</span>: <span class="str">oauth2</span>
+      <span class="prop">flows</span>:
+        <span class="prop">authorizationCode</span>:
+          <span class="prop">authorizationUrl</span>: <span class="str">https://auth.app.io/oauth/authorize</span>
+          <span class="prop">tokenUrl</span>: <span class="str">https://auth.app.io/oauth/token</span>
+          <span class="prop">scopes</span>:
+            <span class="prop">orders:read</span>: <span class="str">Leitura de pedidos</span>
+            <span class="prop">orders:write</span>: <span class="str">Criação e edição de pedidos</span>
+
+<span class="cm"># Aplicando segurança a um endpoint específico</span>
+<span class="prop">paths</span>:
+  <span class="prop">/orders</span>:
+    <span class="prop">post</span>:
+      <span class="prop">security</span>:
+        - <span class="prop">OAuth2</span>: [<span class="str">orders:write</span>]
+            </div>
+            <div class="tip-box" style="margin-top:8px;">
+                <h4>O Swagger UI lê os securitySchemes</h4>
+                <p style="font-size:0.85rem;">Com os schemas declarados, o Swagger UI exibe um botão "Authorize" que permite ao desenvolvedor inserir seu token e testar endpoints protegidos diretamente na interface, sem precisar de curl ou Postman.</p>
+            </div>
+        </div>
+</pre>
+    </div>
+    <span class="citation">OpenAPI Initiative. OpenAPI Specification v3.1.0. Linux Foundation, 2021. https://spec.openapis.org/oas/v3.1.0 | JSON Schema 2020-12: https://json-schema.org/specification.html</span>
+</div>
+
+<!-- ══ 10 OPENAPI — SWAGGER UI ═══════════════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-open">II. OpenAPI</span> Swagger UI — documentação que se executa</h2>
+    <p style="margin-bottom:12px;">O documento OpenAPI é renderizado como interface navegável e executável. Cada endpoint pode ser testado diretamente no browser, com autenticação OAuth2 integrada.</p>
+    <div class="swagger-ui">
+        <div class="swagger-header">
+            <span style="font-size:1.2rem;">&#128681;</span>
+            Orders API &nbsp;<span style="background:rgba(255,255,255,0.2);padding:2px 9px;border-radius:12px;font-size:0.76rem;font-weight:400;">OAS 3.1.0</span>
+            &nbsp;<span style="background:#49cc90;padding:2px 9px;border-radius:12px;font-size:0.76rem;">v2.0.0</span>
+            &nbsp;<span style="background:rgba(255,255,255,0.15);padding:2px 9px;border-radius:12px;font-size:0.76rem;cursor:pointer;" onclick="alert('Em produção, abre o diálogo OAuth2 para inserir client_id/secret ou token Bearer.')">&#128274; Authorize</span>
+        </div>
+        <div style="padding:7px 14px;background:#fff;border-bottom:1px solid #ddd;font-size:0.8rem;color:#555;">
+            <strong>Servers:</strong> https://api.app.io/v2
+        </div>
+        <div class="swagger-path">
+            <div class="swagger-path-header" onclick="toggleSwagger('s1')">
+                <span class="method-badge method-get">GET</span>
+                <span class="path-url">/orders</span>
+                <span class="swagger-tag" style="margin-left:9px;">Orders</span>
+                <span class="path-summary">Lista pedidos do usuário autenticado</span>
+                <span style="margin-left:auto;font-size:0.78rem;color:#aaa;">&#9660;</span>
+            </div>
+            <div class="swagger-body" id="s1">
+                <p><strong>Segurança:</strong> <code>OAuth2 [orders:read]</code> ou <code>BearerAuth</code></p>
+                <p><strong>Query params:</strong> <code>?status=pending</code> &nbsp; <code>?page=1&limit=20</code> &nbsp; <code>?sort=created_at&order=desc</code></p>
+                <p><strong>Resposta 200:</strong> Array de <code>Order</code> com paginação via headers <code>X-Total-Count</code> e <code>Link</code> (RFC 8288)</p>
+                <p><strong>Resposta 401:</strong> <code>ProblemDetail</code> — token ausente ou expirado</p>
+                <button onclick="alert('Em produção, o Swagger UI enviaria GET /v2/orders com o Bearer token inserido no Authorize e exibiria o JSON de resposta com destaque de sintaxe.')" style="background:var(--c-rest);color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.8rem;margin-top:5px;">&#9654; Execute</button>
+            </div>
+        </div>
+        <div class="swagger-path">
+            <div class="swagger-path-header" onclick="toggleSwagger('s2')">
+                <span class="method-badge method-post">POST</span>
+                <span class="path-url">/orders</span>
+                <span class="swagger-tag" style="margin-left:9px;">Orders</span>
+                <span class="path-summary">Cria um novo pedido</span>
+                <span style="margin-left:auto;font-size:0.78rem;color:#aaa;">&#9660;</span>
+            </div>
+            <div class="swagger-body" id="s2">
+                <p><strong>Segurança:</strong> <code>OAuth2 [orders:write]</code></p>
+                <p><strong>Header:</strong> <code>Idempotency-Key: {uuid}</code> — previne pedidos duplicados em retries</p>
+                <p><strong>Body:</strong> schema <code>OrderCreate</code> com <code>items[]</code>, <code>payment_method</code> (oneOf CreditCard | Pix) e <code>delivery_address</code></p>
+                <p><strong>Resposta 201:</strong> <code>Order</code> criado + header <code>Location: /orders/{id}</code></p>
+                <p><strong>Resposta 409:</strong> <code>ProblemDetail</code> — Idempotency-Key já usada (pedido duplicado detectado)</p>
+                <p><strong>Resposta 422:</strong> <code>ProblemDetail</code> — payload inválido semanticamente</p>
+                <button onclick="alert('Em produção, o Swagger UI exibiria um formulário com os campos do schema OrderCreate, incluindo o seletor oneOf para o meio de pagamento.')" style="background:var(--c-rest);color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.8rem;margin-top:5px;">&#9654; Execute</button>
+            </div>
+        </div>
+        <div class="swagger-path">
+            <div class="swagger-path-header" onclick="toggleSwagger('s3')">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="path-url">/orders/{id}</span>
+                <span class="swagger-tag" style="margin-left:9px;">Orders</span>
+                <span class="path-summary">Cancela um pedido pendente</span>
+                <span style="margin-left:auto;font-size:0.78rem;color:#aaa;">&#9660;</span>
+            </div>
+            <div class="swagger-body" id="s3">
+                <p><strong>Path param:</strong> <code>id</code> (UUID do pedido)</p>
+                <p><strong>Resposta 204:</strong> Cancelado com sucesso — sem corpo</p>
+                <p><strong>Resposta 404:</strong> <code>ProblemDetail</code> — pedido não encontrado</p>
+                <p><strong>Resposta 409:</strong> <code>ProblemDetail</code> — pedido não pode ser cancelado no estado atual (ex: já despachado)</p>
+                <button onclick="alert('Em produção, o Swagger UI exibiria um campo para o UUID do pedido e enviaria o DELETE com autenticação.')" style="background:var(--c-rest);color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.8rem;margin-top:5px;">&#9654; Execute</button>
+            </div>
+        </div>
+    </div>
+    <div class="tip-box" style="margin-top:8px;">
+        <h4>Geração automática em frameworks</h4>
+        <p style="font-size:0.86rem;">FastAPI (Python), Spring Boot com Springdoc (Java) e NestJS (Node.js) geram o documento OpenAPI a partir de anotações no código e sobem o Swagger UI em <code>/docs</code> sem configuração adicional.</p>
+    </div>
+    <span class="citation">Swagger UI: https://swagger.io/tools/swagger-ui/ | RFC 8288 — Web Linking. IETF, 2017. | FastAPI OpenAPI: https://fastapi.tiangolo.com/tutorial/path-operation-configuration/</span>
+</div>
+
+<!-- ══ 11 CHECKPOINT REST + OPENAPI ═════════════════════════ -->
+<div class="slide">
+    <h2>&#127919; Checkpoint I &mdash; REST e OpenAPI</h2>
+
+    <div class="checkpoint">
+        <h3>Questão 1 &mdash; Idempotência e segurança</h3>
+        <div class="cp-q">
+            <p>Um cliente perde a resposta de uma requisição <code>DELETE /orders/99</code> por timeout de rede e não sabe se o servidor processou. Ele pode repetir a requisição automaticamente sem risco? E um <code>POST /orders</code> pode receber o mesmo tratamento? Justifique com base nas propriedades dos métodos HTTP.</p>
+        </div>
+        <div class="cp-options" id="cp1-opts">
+            <div class="cp-option" data-correct="false">A) Nenhum dos dois pode ser repetido automaticamente. DELETE e POST são ambos métodos não seguros — qualquer operação que modifique estado no servidor exige confirmação manual antes de ser retentada, independentemente da idempotência.</div>
+            <div class="cp-option" data-correct="true">B) O DELETE pode ser repetido automaticamente: é idempotente por definição (RFC 9110). O estado resultante é idêntico — o recurso não existe em ambos os casos, mesmo que a segunda chamada retorne 404. O POST não pode: não é idempotente, e repetições criam novos recursos. Para POST, a solução é o header Idempotency-Key, que permite ao servidor detectar e ignorar retransmissões.</div>
+            <div class="cp-option" data-correct="false">C) O POST pode ser repetido porque o cliente pode usar o mesmo corpo de requisição, garantindo que o servidor crie o mesmo recurso. O DELETE não pode ser repetido porque após o primeiro DELETE o recurso não existe mais, e a segunda chamada retornaria 404, indicando falha.</div>
+            <div class="cp-option" data-correct="false">D) Ambos podem ser repetidos automaticamente desde que o cliente inclua o header <code>X-Retry: true</code>, que sinaliza ao servidor que a requisição é uma retentativa e permite que ele aplique deduplicação independentemente do método HTTP utilizado.</div>
+        </div>
+        <button class="cp-btn" id="cp1-btn" onclick="checkCP('cp1')">Verificar</button>
+        <div class="cp-feedback" id="cp1-fb"></div>
+    </div>
+
+    <div class="checkpoint" style="margin-top:12px;">
+        <h3>Questão 2 &mdash; HATEOAS e OpenAPI</h3>
+        <div class="cp-q">
+            <p>A resposta de <code>GET /orders/42</code> inclui um link <code>"cancel"</code> quando o pedido está pendente, e não inclui esse link quando já foi pago. Um desenvolvedor argumenta que isso é desnecessário — o cliente pode simplesmente tentar o DELETE e tratar o 409. Por que a abordagem HATEOAS é arquiteturalmente superior?</p>
+        </div>
+        <div class="cp-options" id="cp2-opts">
+            <div class="cp-option" data-correct="false">A) A abordagem HATEOAS é superior porque reduz o tráfego de rede: o cliente faz menos chamadas ao servidor, pois sabe antecipadamente quais ações estão disponíveis sem precisar tentar e receber erros.</div>
+            <div class="cp-option" data-correct="false">B) A abordagem HATEOAS é preferível principalmente por razões de segurança: ocultar o link de cancelamento impede que usuários mal-intencionados descubram a URI e tentem acessá-la diretamente via ferramentas como curl.</div>
+            <div class="cp-option" data-correct="true">C) Com HATEOAS, o servidor controla as transições de estado válidas — o cliente não precisa conhecer as regras de negócio para saber o que pode fazer em cada estado. Se as regras mudarem (ex: janela de cancelamento cair de 24h para 12h), o servidor muda os links e o cliente se adapta automaticamente, sem deploy. A abordagem "tente e trate o 409" acopla o cliente ao conhecimento das regras de estado do servidor, e qualquer mudança nessas regras exige atualização coordenada do cliente.</div>
+            <div class="cp-option" data-correct="false">D) HATEOAS é superior porque o OpenAPI não consegue documentar respostas condicionais com campos que aparecem em alguns estados e não em outros, então incluir os links na resposta é a única forma de comunicar ao cliente quais ações estão disponíveis no momento.</div>
+        </div>
+        <button class="cp-btn" id="cp2-btn" onclick="checkCP('cp2')">Verificar</button>
+        <div class="cp-feedback" id="cp2-fb"></div>
+    </div>
+</div>
+
+<!-- ══ 12 DOCKER ══════════════════════════════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-dock">III. Docker</span> Contêineres, Dockerfile e boas práticas</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Por que contêineres</h3>
+            <div class="card warn" style="margin-bottom:8px;">
+                <h4>O problema clássico</h4>
+                <p style="font-size:0.87rem;">O serviço roda Python 3.11 localmente. O servidor de produção tem Python 3.9 e uma versão diferente de <code>libffi</code>. O deploy quebra. Um contêiner empacota código, runtime e dependências numa unidade portável que roda identicamente em qualquer máquina com Docker Engine.</p>
+            </div>
+            <div class="card dock" style="margin-bottom:8px;">
+                <h4>Contêiner ≠ Máquina Virtual</h4>
+                <p style="font-size:0.87rem;">VMs virtualizam hardware completo com kernel próprio. Contêineres compartilham o kernel do host, isolando apenas processo e filesystem. Inicializam em milissegundos, consomem megabytes.</p>
+            </div>
+            <h3 style="margin-top:10px;">Dockerfile com multi-stage build</h3>
+            <div class="code-block" style="font-size:0.76rem;">
+<pre>
+<span class="cm"># Estágio 1: builder — compila e testa</span>
+<span class="kw">FROM</span> <span class="str">node:22-alpine</span> <span class="kw">AS</span> builder
+<span class="kw">WORKDIR</span> <span class="str">/app</span>
+<span class="kw">COPY</span> <span class="str">package*.json .</span>
+<span class="kw">RUN</span> <span class="str">npm ci</span>
+<span class="kw">COPY</span> <span class="str">. .</span>
+<span class="kw">RUN</span> <span class="str">npm run build && npm test</span>
+
+<span class="cm"># Estágio 2: produção — só o necessário</span>
+<span class="kw">FROM</span> <span class="str">node:22-alpine</span> <span class="kw">AS</span> production
+<span class="kw">WORKDIR</span> <span class="str">/app</span>
+<span class="kw">COPY</span> <span class="str">package*.json .</span>
+<span class="kw">RUN</span> <span class="str">npm ci --omit=dev</span>
+<span class="kw">COPY</span> <span class="str">--from=builder /app/dist ./dist</span>
+<span class="kw">USER</span> <span class="str">node</span>         <span class="cm"># nunca rodar como root</span>
+<span class="kw">EXPOSE</span> <span class="num">3000</span>
+<span class="kw">CMD</span> [<span class="str">"node"</span>, <span class="str">"dist/main.js"</span>]
+</pre>
+            </div>
+        </div>
+        <div>
+            <h3>Docker Compose — múltiplos serviços locais</h3>
+            <div class="code-block" style="font-size:0.76rem;">
+<pre>
+<span class="prop">services</span>:
+
+  <span class="prop">api</span>:
+    <span class="prop">build</span>:
+      <span class="prop">context</span>: <span class="str">./api</span>
+      <span class="prop">target</span>: <span class="str">production</span>  <span class="cm"># estágio alvo</span>
+    <span class="prop">ports</span>: [<span class="str">"3000:3000"</span>]
+    <span class="prop">environment</span>:
+      <span class="prop">DATABASE_URL</span>: <span class="str">postgresql://app:app@db/appdb</span>
+      <span class="prop">REDIS_URL</span>: <span class="str">redis://cache:6379</span>
+      <span class="prop">JWT_SECRET</span>: <span class="str">${JWT_SECRET}</span>  <span class="cm"># do .env</span>
+    <span class="prop">depends_on</span>:
+      <span class="prop">db</span>: {<span class="prop">condition</span>: <span class="str">service_healthy</span>}
+      <span class="prop">cache</span>: {<span class="prop">condition</span>: <span class="str">service_started</span>}
+
+  <span class="prop">db</span>:
+    <span class="prop">image</span>: <span class="str">postgres:16-alpine</span>
+    <span class="prop">environment</span>:
+      <span class="prop">POSTGRES_PASSWORD</span>: <span class="str">app</span>
+    <span class="prop">volumes</span>: [<span class="str">pgdata:/var/lib/postgresql/data</span>]
+    <span class="prop">healthcheck</span>:
+      <span class="prop">test</span>: [<span class="str">"CMD"</span>, <span class="str">"pg_isready"</span>]
+      <span class="prop">interval</span>: <span class="str">5s</span>
+
+  <span class="prop">cache</span>:
+    <span class="prop">image</span>: <span class="str">redis:7-alpine</span>
+
+<span class="prop">volumes</span>: {<span class="prop">pgdata</span>: {}}
+</pre>
+            </div>
+            <div class="note-box" style="margin-top:8px;">
+                <h4>Multi-stage + Compose: boas práticas integradas</h4>
+                <p style="font-size:0.85rem;">O multi-stage build garante que a imagem de produção não contém ferramentas de build nem dependências de dev. O <code>healthcheck</code> no Compose evita que a API suba antes do banco estar pronto.</p>
+            </div>
+        </div>
+    </div>
+    <span class="citation">Docker Documentation — Multi-stage builds: https://docs.docker.com/build/building/multi-stage/ | Docker Compose Specification: https://compose-spec.io/ | MERKEL, D. Docker: Lightweight Linux Containers. Linux Journal, n. 239, 2014.</span>
+</div>
+
+<!-- ══ 13 KUBERNETES — CONCEITOS ═════════════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-k8s">IV. Kubernetes</span> Pod, Deployment, Service e Probes</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Por que Kubernetes em produção</h3>
+            <div class="danger-box" style="margin-bottom:8px;">
+                <h4>O que o Compose não resolve</h4>
+                <p style="font-size:0.86rem;">Não reinicia contêineres com backoff inteligente, não escala com base em métricas, não distribui carga entre servidores, não faz rolling updates sem downtime.</p>
+            </div>
+            <h4 style="margin-bottom:6px;">Pod, Deployment e Service</h4>
+            <div class="code-block" style="font-size:0.74rem;">
+<pre>
+<span class="prop">kind</span>: <span class="str">Deployment</span>
+<span class="prop">spec</span>:
+  <span class="prop">replicas</span>: <span class="num">3</span>
+  <span class="prop">selector</span>:
+    <span class="prop">matchLabels</span>: {<span class="prop">app</span>: <span class="str">orders-api</span>}
+  <span class="prop">template</span>:
+    <span class="prop">spec</span>:
+      <span class="prop">containers</span>:
+      - <span class="prop">name</span>: <span class="str">orders-api</span>
+        <span class="prop">image</span>: <span class="str">app/orders-api:2.1</span>
+        <span class="prop">ports</span>:
+        - <span class="prop">containerPort</span>: <span class="num">3000</span>
+        <span class="prop">resources</span>:
+          <span class="prop">requests</span>: {<span class="prop">cpu</span>: <span class="str">"100m"</span>, <span class="prop">memory</span>: <span class="str">"128Mi"</span>}
+          <span class="prop">limits</span>:  {<span class="prop">cpu</span>: <span class="str">"500m"</span>, <span class="prop">memory</span>: <span class="str">"512Mi"</span>}
+---
+<span class="prop">kind</span>: <span class="str">Service</span>
+<span class="prop">spec</span>:
+  <span class="prop">selector</span>: {<span class="prop">app</span>: <span class="str">orders-api</span>}
+  <span class="prop">ports</span>: [{<span class="prop">port</span>: <span class="num">80</span>, <span class="prop">targetPort</span>: <span class="num">3000</span>}]
+  <span class="prop">type</span>: <span class="str">ClusterIP</span>
+            </div>
+        </div>
+</pre>
+        <div>
+            <h3>Liveness e Readiness Probes</h3>
+            <div class="tip-box" style="margin-bottom:8px;">
+                <h4>Duas probes, dois propósitos distintos</h4>
+                <p style="font-size:0.85rem;"><strong>Liveness:</strong> "o contêiner está travado?" — se falhar, K8s reinicia o Pod.<br><strong>Readiness:</strong> "o contêiner está pronto para receber tráfego?" — se falhar, K8s remove o Pod do Service (sem matar).</p>
+            </div>
+            <div class="code-block" style="font-size:0.74rem;">
+<pre>
+<span class="prop">livenessProbe</span>:
+  <span class="prop">httpGet</span>:
+    <span class="prop">path</span>: <span class="str">/health/live</span>
+    <span class="prop">port</span>: <span class="num">3000</span>
+  <span class="prop">initialDelaySeconds</span>: <span class="num">15</span>  <span class="cm"># aguarda inicialização</span>
+  <span class="prop">periodSeconds</span>: <span class="num">10</span>
+  <span class="prop">failureThreshold</span>: <span class="num">3</span>      <span class="cm"># 3 falhas seguidas = restart</span>
+
+<span class="prop">readinessProbe</span>:
+  <span class="prop">httpGet</span>:
+    <span class="prop">path</span>: <span class="str">/health/ready</span>
+    <span class="prop">port</span>: <span class="num">3000</span>
+  <span class="prop">periodSeconds</span>: <span class="num">5</span>
+  <span class="prop">failureThreshold</span>: <span class="num">2</span>      <span class="cm"># 2 falhas = sai do LB</span>
+ </pre>
+            </div>
+            <div class="code-block" style="font-size:0.74rem;margin-top:6px;">
+<pre>
+<span class="cm">// /health/ready — verifica dependências</span>
+<span class="kw">app</span>.<span class="prop">get</span>(<span class="str">'/health/ready'</span>, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> dbOk = <span class="kw">await</span> db.ping();
+  <span class="kw">const</span> cacheOk = <span class="kw">await</span> redis.ping();
+  <span class="kw">if</span> (dbOk && cacheOk)
+    res.status(<span class="num">200</span>).json({ status: <span class="str">'ready'</span> });
+  <span class="kw">else</span>
+    res.status(<span class="num">503</span>).json({ status: <span class="str">'not ready'</span> });
+});
+            </div>
+        </div>
+</pre>
+    </div>
+    <span class="citation">BURNS, B. et al. Borg, Omega, and Kubernetes. ACM Queue, v. 14, 2016. DOI: 10.1145/2898442.2898444 | Kubernetes Probes: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/</span>
+</div>
+
+<!-- ══ 14 KUBERNETES — HPA E COMPARATIVO ════════════════════ -->
+<div class="slide">
+    <h2><span class="badge b-k8s">IV. Kubernetes</span> HorizontalPodAutoscaler e visão geral</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Escalonamento automático com HPA</h3>
+            <div class="code-block" style="font-size:0.78rem;">
+<pre>
+<span class="prop">kind</span>: <span class="str">HorizontalPodAutoscaler</span>
+<span class="prop">spec</span>:
+  <span class="prop">scaleTargetRef</span>:
+    <span class="prop">kind</span>: <span class="str">Deployment</span>
+    <span class="prop">name</span>: <span class="str">orders-api</span>
+  <span class="prop">minReplicas</span>: <span class="num">2</span>
+  <span class="prop">maxReplicas</span>: <span class="num">12</span>
+  <span class="prop">metrics</span>:
+  - <span class="prop">type</span>: <span class="str">Resource</span>
+    <span class="prop">resource</span>:
+      <span class="prop">name</span>: <span class="str">cpu</span>
+      <span class="prop">target</span>:
+        <span class="prop">type</span>: <span class="str">Utilization</span>
+        <span class="prop">averageUtilization</span>: <span class="num">60</span>
+            </div>
+            <div class="note-box" style="margin-top:8px;">
+                <h4>Como o HPA decide</h4>
+                <p style="font-size:0.86rem;">A cada 15 segundos, o HPA consulta as métricas de CPU de todos os Pods do Deployment. Se a utilização média superar 60%, calcula o número de réplicas necessárias: <code>réplicas = ceil(atual × utilização / alvo)</code>. Com 3 Pods a 90% de CPU, o resultado seria <code>ceil(3 × 90/60) = 5</code> réplicas.</p>
+            </div>
+            <div class="warn-box" style="margin-top:8px;">
+                <h4>Pré-requisito crítico: resource requests</h4>
+                <p style="font-size:0.86rem;">O HPA só funciona se o Deployment tiver <code>resources.requests.cpu</code> definido. Sem isso, o K8s não tem base para calcular o percentual de utilização.</p>
+            </div>
+        </div>
+        <div>
+            <h3>Docker vs. Compose vs. Kubernetes</h3>
+            <table class="cmp-table">
+                <thead><tr><th>Aspecto</th><th>Docker</th><th>Compose</th><th>K8s</th></tr></thead>
+                <tbody>
+                    <tr><td>Escopo</td><td>1 contêiner</td><td>1 máquina</td><td class="cell-good">N máquinas</td></tr>
+                    <tr><td>Auto-restart</td><td class="cell-mid">Básico</td><td class="cell-mid">Básico</td><td class="cell-good">Com backoff</td></tr>
+                    <tr><td>Auto-scaling</td><td class="cell-bad">Não</td><td class="cell-bad">Não</td><td class="cell-good">HPA</td></tr>
+                    <tr><td>Rolling update</td><td class="cell-bad">Não</td><td class="cell-mid">Parcial</td><td class="cell-good">Nativo</td></tr>
+                    <tr><td>Liveness/Readiness</td><td class="cell-bad">Não</td><td class="cell-mid">Healthcheck</td><td class="cell-good">Probes nativas</td></tr>
+                    <tr><td>Segredos</td><td class="cell-bad">Env vars</td><td class="cell-mid">.env files</td><td class="cell-good">Secrets API</td></tr>
+                    <tr><td>Uso ideal</td><td>Dev local</td><td>Dev/QA</td><td class="cell-good">Produção</td></tr>
+                </tbody>
+            </table>
+            <div class="flow" style="justify-content:center;background:#f8f9fa;padding:12px;border-radius:8px;margin-top:8px;">
+                <div class="flow-node" style="background:var(--c-k8s);">Cliente</div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-node" style="background:#1a5276;">Service<br><small>:80</small></div>
+                <div class="flow-arrow">&#8594;</div>
+                <div class="flow-node" style="background:var(--c-rest);">Pod 1</div>
+                <div class="flow-arrow" style="color:#ccc;">|</div>
+                <div class="flow-node" style="background:var(--c-rest);">Pod 2</div>
+                <div class="flow-arrow" style="color:#ccc;">|</div>
+                <div class="flow-node" style="background:var(--c-rest);">Pod 3</div>
+            </div>
+        </div>
+</pre>
+    </div>
+    <span class="citation">Kubernetes HPA: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/ | BURNS, B. et al. Borg, Omega, and Kubernetes. ACM Queue, v. 14, 2016. DOI: 10.1145/2898442.2898444</span>
+</div>
+
+<!-- ══ 15 CHECKPOINT DOCKER + K8S ═══════════════════════════ -->
+<div class="slide">
+    <h2>&#127919; Checkpoint II &mdash; Docker e Kubernetes</h2>
+
+    <div class="checkpoint">
+        <h3>Questão 3 &mdash; Multi-stage build</h3>
+        <div class="cp-q">
+            <p>O Dockerfile usa multi-stage build com um estágio <code>builder</code> (que compila e testa) e um estágio <code>production</code> (que copia apenas o artefato compilado). Qual é o benefício concreto dessa separação em relação a um Dockerfile de estágio único que faz tudo?</p>
+        </div>
+        <div class="cp-options" id="cp3-opts">
+            <div class="cp-option" data-correct="false">A) O multi-stage build é mais rápido porque executa o estágio de build e o de produção em paralelo, aproveitando múltiplos núcleos do host durante o processo de construção da imagem.</div>
+            <div class="cp-option" data-correct="true">B) A imagem final de produção contém apenas o artefato compilado e as dependências de runtime — sem compilador, ferramentas de build, dependências de dev ou código-fonte. Isso reduz drasticamente a superfície de ataque (menos binários que podem ser explorados) e o tamanho da imagem (que pode cair de centenas para dezenas de MB), acelerando pulls no deploy.</div>
+            <div class="cp-option" data-correct="false">C) O multi-stage build permite que a imagem de produção seja executada sem o Docker Engine instalado no servidor, pois o estágio builder compila todos os binários necessários para execução direta no sistema operacional do host.</div>
+            <div class="cp-option" data-correct="false">D) A principal vantagem é o cache de camadas: o Docker armazena o resultado do estágio builder em cache e reutiliza na próxima execução, eliminando a necessidade de recompilar o código mesmo que as dependências tenham mudado.</div>
+        </div>
+        <button class="cp-btn" id="cp3-btn" onclick="checkCP('cp3')">Verificar</button>
+        <div class="cp-feedback" id="cp3-fb"></div>
+    </div>
+
+    <div class="checkpoint" style="margin-top:12px;">
+        <h3>Questão 4 &mdash; Liveness vs. Readiness</h3>
+        <div class="cp-q">
+            <p>O Pod da Orders API está rodando, mas o banco de dados ficou temporariamente indisponível. A readinessProbe falha. A livenessProbe continua passando. O que o Kubernetes faz e por que esse comportamento é correto?</p>
+        </div>
+        <div class="cp-options" id="cp4-opts">
+            <div class="cp-option" data-correct="false">A) O Kubernetes reinicia o Pod porque interpreta a falha da readinessProbe como indicação de que o processo está em estado irrecuperável, aplicando a mesma política de recuperação usada para a livenessProbe.</div>
+            <div class="cp-option" data-correct="true">B) O Kubernetes remove o Pod do balanceamento de carga do Service (parar de enviar tráfego), mas mantém o contêiner rodando. Quando o banco voltar, a readinessProbe passa novamente e o Pod retorna ao pool. Esse comportamento é correto: o processo da API não está travado (liveness OK), apenas incapaz de atender requisições sem o banco (readiness falhou). Reiniciar o Pod não resolveria o problema — o banco continuaria indisponível.</td></div>
+            <div class="cp-option" data-correct="false">C) O Kubernetes aguarda 3 falhas consecutivas da readinessProbe e, após atingir o failureThreshold, encerra o Pod e cria um novo, assumindo que a reinicialização pode resolver dependências de rede temporárias entre o contêiner e o banco de dados.</div>
+            <div class="cp-option" data-correct="false">D) O Kubernetes não toma nenhuma ação automática quando apenas a readinessProbe falha. O comportamento de remover o Pod do Service só ocorre quando ambas as probes (liveness e readiness) falham simultaneamente por pelo menos 5 minutos.</div>
+        </div>
+        <button class="cp-btn" id="cp4-btn" onclick="checkCP('cp4')">Verificar</button>
+        <div class="cp-feedback" id="cp4-fb"></div>
+    </div>
+</div>
+
+<!-- ══ 16 SÍNTESE ════════════════════════════════════════════ -->
+<div class="slide">
+    <h2>Síntese &mdash; Da especificação ao cluster</h2>
+    <div class="grid-2">
+        <div>
+            <h3>Mapa conceitual da aula</h3>
+            <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:10px;padding:18px;">
+                <div style="display:flex;flex-direction:column;gap:5px;align-items:stretch;">
+                    <div style="background:var(--c-rest);color:white;padding:10px 14px;border-radius:6px;font-weight:700;font-size:0.9rem;">
+                        API RESTful<br><small style="font-weight:400;opacity:0.88;">6 constraints · idempotência · status codes · HATEOAS · OAuth2</small>
+                    </div>
+                    <div style="text-align:center;color:var(--puc-grey);font-size:1rem;">&#8595; contrato descrito por</div>
+                    <div style="background:var(--c-open);color:white;padding:10px 14px;border-radius:6px;font-weight:700;font-size:0.9rem;">
+                        OpenAPI + Swagger UI<br><small style="font-weight:400;opacity:0.88;">schemas · allOf/oneOf · securitySchemes · Idempotency-Key</small>
+                    </div>
+                    <div style="text-align:center;color:var(--puc-grey);font-size:1rem;">&#8595; empacotada em</div>
+                    <div style="background:var(--c-dock);color:white;padding:10px 14px;border-radius:6px;font-weight:700;font-size:0.9rem;">
+                        Docker + Compose<br><small style="font-weight:400;opacity:0.88;">multi-stage build · healthcheck · ambiente reproduzível</small>
+                    </div>
+                    <div style="text-align:center;color:var(--puc-grey);font-size:1rem;">&#8595; operada por</div>
+                    <div style="background:var(--c-k8s);color:white;padding:10px 14px;border-radius:6px;font-weight:700;font-size:0.9rem;">
+                        Kubernetes<br><small style="font-weight:400;opacity:0.88;">Pod · Deployment · Service · Probes · HPA</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3>Pontos para levar</h3>
+            <div class="card rest" style="margin-bottom:8px;">
+                <h4>REST é um estilo arquitetural, não uma tecnologia</h4>
+                <p style="font-size:0.86rem;">A maioria das APIs chamadas de "REST" viola Stateless ou Uniform Interface. Conhecer os 6 constraints e a semântica dos verbos permite avaliar e projetar APIs com fundamento — e perceber quando um colega está criando um anti-padrão.</p>
+            </div>
+            <div class="card open" style="margin-bottom:8px;">
+                <h4>Idempotência é contrato, não implementação</h4>
+                <p style="font-size:0.86rem;">GET e DELETE podem ser repetidos com segurança. POST não pode. Essa distinção determina como clientes implementam retry, como load balancers roteiam e como a <code>Idempotency-Key</code> protege operações críticas.</p>
+            </div>
+            <div class="card dock" style="margin-bottom:8px;">
+                <h4>Liveness ≠ Readiness</h4>
+                <p style="font-size:0.86rem;">Reiniciar um Pod que perdeu conexão com o banco não resolve nada — o banco continua indisponível. Readiness retira o Pod do balanceamento até as dependências voltarem. Liveness reinicia apenas quando o processo está irrecuperável.</p>
+            </div>
+            <div class="tip-box">
+                <h4>&#128279; Continuidade</h4>
+                <p style="font-size:0.86rem;">Os temas desta aula conectam diretamente com o que vimos ao longo do semestre: os middlewares da Aula 11 expõem APIs REST; os sistemas distribuídos das Aulas 02–05 são os serviços que Docker e Kubernetes orquestram em produção.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div><!-- /slides-container -->
+
+<div class="controls" id="footer-ui">
+    <div class="footer-info" id="slide-number">1 / 16</div>
+    <button class="nav-btn" onclick="prevSlide()">&#8592; Anterior</button>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <button class="nav-btn" onclick="nextSlide()">Próximo &#8594;</button>
+    <div class="footer-info" style="text-align:right;">DAMD 2026/1</div>
+</div>
+
+<script>
+let cur=0;
+const slides=document.querySelectorAll('.slide');
+const prog=document.getElementById('progress');
+const num=document.getElementById('slide-number');
+const total=slides.length;
+
+function updateSlide(){
+    slides.forEach((s,i)=>{
+        s.classList.remove('active','previous');
+        if(i===cur)s.classList.add('active');
+        else if(i<cur)s.classList.add('previous');
+    });
+    prog.style.width=((cur+1)/total*100)+'%';
+    num.textContent=`${cur+1} / ${total}`;
+    setTimeout(checkScroll,120);
+}
+function nextSlide(){if(cur<total-1){cur++;updateSlide();}}
+function prevSlide(){if(cur>0){cur--;updateSlide();}}
+
+document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' ')nextSlide();
+    if(e.key==='ArrowLeft')prevSlide();
+});
+
+function toggleSwagger(id){
+    document.getElementById(id).classList.toggle('open');
+}
+
+const cpData={
+    cp1:{
+        correct:"Correto! DELETE é idempotente por definição na RFC 9110: chamar N vezes produz o mesmo estado que chamar uma vez. O recurso não existe após o DELETE — seja na primeira ou na décima chamada. A resposta pode variar (204 depois 404), mas o estado é idêntico. POST é não idempotente: cada chamada cria um novo recurso. O header Idempotency-Key permite ao servidor associar uma chave única à operação e ignorar retransmissões com a mesma chave, tornando POST efetivamente idempotente na camada de aplicação.",
+        wrong:"A distinção entre idempotência e segurança é fundamental aqui. DELETE é idempotente (RFC 9110, seção 9.2.2): repetir a operação não altera o estado final. POST é não idempotente: cada chamada cria um novo recurso. O header X-Retry não existe como padrão HTTP para esse propósito — a solução correta é o Idempotency-Key, que o servidor usa para detectar retransmissões. A questão não é se o cliente 'pode' repetir manualmente, mas se repetições automáticas são seguras por design."
+    },
+    cp2:{
+        correct:"Correto! Esse é o princípio central do HATEOAS: o servidor, não o cliente, determina quais transições são válidas em cada estado. Quando as regras de negócio mudam — por exemplo, a janela de cancelamento é reduzida — o servidor simplesmente para de incluir o link 'cancel' nas respostas para pedidos fora do prazo. O cliente que segue links se adapta automaticamente, sem deploy. A abordagem 'tente e trate o 409' é um acoplamento implícito: o cliente precisa conhecer as regras de estado do servidor, e qualquer mudança nessas regras exige atualização coordenada de ambos os lados.",
+        wrong:"O benefício central do HATEOAS não é técnico (tráfego, segurança, limitação do OpenAPI) — é arquitetural: desacoplamento entre cliente e servidor sobre as regras de transição de estado. Quando o servidor controla quais links aparecem em cada estado, ele controla o fluxo válido. O cliente que segue links nunca precisa saber as regras de negócio por trás das transições. Isso significa que mudanças no servidor não exigem atualização do cliente — o oposto exato da abordagem 'tente e trate o erro'."
+    },
+    cp3:{
+        correct:"Exato! Esse é o benefício central do multi-stage build. No estágio único, a imagem final contém o compilador, o npm/node_modules de dev, os arquivos de teste e o código-fonte — tudo que foi necessário para construir o artefato. Com multi-stage, o estágio production recebe apenas o artefato compilado e as dependências de runtime. Uma imagem Node.js típica com ferramentas de build pode ter 1,2 GB; a imagem de produção com multi-stage pode ter 150 MB. Menor superfície de ataque, pull mais rápido, deploy mais rápido.",
+        wrong:"O multi-stage build não paraleliza estágios nem elimina o Docker Engine do servidor. O cache de camadas existe em qualquer Dockerfile, não é exclusivo do multi-stage. O benefício central é a separação entre ambiente de build e imagem de produção: a imagem final contém apenas o necessário para rodar — sem compilador, sem dependências de dev, sem código-fonte. Isso reduz tamanho e superfície de ataque diretamente."
+    },
+    cp4:{
+        correct:"Correto! O Kubernetes usa as duas probes para propósitos distintos precisamente para esse cenário. A readinessProbe protege o Service: um Pod que não consegue atender requisições (porque o banco está fora) não deveria recebê-las. Removê-lo do pool é a resposta correta — os outros Pods (ou nenhum, se todos falharam) atendem o tráfego. A livenessProbe protege contra processos travados ou em deadlock: se passando, o processo está saudável e não deve ser reiniciado. Reiniciar o Pod sem banco não resolveria nada — ao subir, a readinessProbe falharia novamente pelo mesmo motivo.",
+        wrong:"A readinessProbe não aciona reinício do Pod — essa é a função exclusiva da livenessProbe. Quando apenas a readiness falha, o K8s remove o Pod do Service (para de mandar tráfego) mas mantém o contêiner rodando. Esse design é intencional: perda de dependência externa (banco, cache) não é motivo para reiniciar o processo. O Pod precisa ficar fora do balanceamento até a dependência voltar, não ser destruído e recriado ciclicamente."
+    }
+};
+
+function checkCP(id){
+    const opts=document.querySelectorAll('#'+id+'-opts .cp-option');
+    const fb=document.getElementById(id+'-fb');
+    const btn=document.getElementById(id+'-btn');
+    const sel=[...opts].find(o=>o.classList.contains('selected'));
+    if(!sel){alert('Selecione uma opção antes de verificar!');return;}
+    const ok=sel.dataset.correct==='true';
+    opts.forEach(o=>{
+        o.style.pointerEvents='none';
+        if(o.dataset.correct==='true')o.classList.add('correct');
+        else if(o.classList.contains('selected'))o.classList.add('wrong');
+    });
+    fb.textContent=(ok?'✅ ':'❌ ')+cpData[id][ok?'correct':'wrong'];
+    fb.classList.add('show');
+    btn.disabled=true;btn.textContent='Respondido ✓';
+}
+
+document.querySelectorAll('.cp-option').forEach(o=>{
+    o.addEventListener('click',function(){
+        if(this.style.pointerEvents==='none')return;
+        this.parentElement.querySelectorAll('.cp-option').forEach(s=>s.classList.remove('selected'));
+        this.classList.add('selected');
+    });
+});
+
+let hideTimer;
+function hideUI(){document.body.classList.add('ui-hidden');}
+function showUI(){document.body.classList.remove('ui-hidden');resetTimer();}
+function resetTimer(){clearTimeout(hideTimer);hideTimer=setTimeout(hideUI,5000);}
+['header-ui','footer-ui','sensor-top','sensor-bottom'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.addEventListener('mouseenter',showUI);el.addEventListener('mousemove',resetTimer);}
+});
+
+const si=document.getElementById('scrollIndicator');
+function checkScroll(){
+    const a=document.querySelector('.slide.active');
+    if(!a)return;
+    const need=a.scrollHeight>a.clientHeight+20;
+    const bot=a.scrollHeight-a.scrollTop<=a.clientHeight+60;
+    si.classList.toggle('show',need&&!bot&&a.scrollTop<60);
+}
+slides.forEach(s=>s.addEventListener('scroll',()=>{if(s.classList.contains('active'))checkScroll();}));
+window.addEventListener('resize',checkScroll);
+
+let touchX=0;
+document.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;});
+document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-touchX;
+    if(Math.abs(dx)>50){if(dx<0)nextSlide();else prevSlide();}
+});
+
+updateSlide();resetTimer();
+</script>
+</body>
+</html>
